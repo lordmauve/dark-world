@@ -35,16 +35,20 @@ function load_model(name, skin, onload) {
 }
 
 
-const SLAB = new THREE.MeshBasicMaterial({color: 0x111111, side: THREE.DoubleSide} );
+const SLAB = new THREE.MeshPhongMaterial({
+    color: 0x111111,
+    shininess: 30,
+    side: THREE.DoubleSide
+});
 
 
 function add_tile(material, x, z) {
-    var geometry = new THREE.PlaneGeometry(16, 16);
+    var geometry = new THREE.PlaneGeometry(15.8, 15.8);
     var plane = new THREE.Mesh(geometry, material);
     plane.receiveShadow = true;
-    plane.rotation.x = Math.PI * 0.5;
-    plane.position.x = x * 18;
-    plane.position.z = z * 18;
+    plane.rotation.x = -Math.PI * 0.5;
+    plane.position.x = x * 16;
+    plane.position.z = z * 16;
     scene.add( plane );
 }
 
@@ -78,10 +82,10 @@ function init() {
     light = new THREE.DirectionalLight(0xffffff);
     light.castShadow = true;
     light.position.set( -10, 6, -10 );
-    light.shadow.mapSize.width = 512;  // default
-    light.shadow.mapSize.height = 512; // default
+    light.shadow.mapSize.width = 1024;  // default
+    light.shadow.mapSize.height = 1024; // default
     light.shadow.camera.near = 0.5;    // default
-    light.shadow.camera.far = 500;     // default
+    light.shadow.camera.far = 100;     // default
     scene.add( light );
 
     light = new THREE.AmbientLight(0xffffff, 0.2);
@@ -94,7 +98,7 @@ function init() {
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setPixelRatio( window.devicePixelRatio / 2);
     renderer.setSize( window.innerWidth, window.innerHeight );
     renderer.gammaOutput = true;
     container.appendChild( renderer.domElement );
@@ -147,20 +151,38 @@ function log(msg, className) {
     );
 }
 
+var ws;
+var player_name = window.localStorage.player_name;
 
-var player_name = null;
+function send_msg(msg) {
+    ws.send(JSON.stringify(msg));
+}
 
+
+while (!player_name) {
+    player_name = prompt('What is your name?');
+};
+
+
+HANDLERS = {
+    'announce': function (params) {
+        log(params.msg);
+    },
+    'authfail': function (params) {
+        log(params.msg, 'error');
+        player_name = null;
+        while (!player_name) {
+            player_name = prompt('What is your name?');
+        };
+    },
+    'authok': function (params) {
+        window.localStorage.player_name = player_name;
+    }
+};
 
 function connect() {
-    var ws = new WebSocket("ws://127.0.0.1:5988/");
+    ws = new WebSocket("ws://127.0.0.1:5988/");
 
-    function send_msg(msg) {
-        ws.send(JSON.stringify(msg));
-    }
-
-    while (!player_name) {
-        player_name = prompt('What is your name?');
-    };
     var messages = $('<ul id="messages">').appendTo(document.body);
     ws.onopen = function () {
         log('Connection established')
@@ -171,9 +193,7 @@ function connect() {
     };
     ws.onmessage = function (event) {
         let params = JSON.parse(event.data);
-        if (params.op == 'announce') {
-            log(params.msg);
-        }
+        HANDLERS[params.op](params);
     };
     ws.onclose = function (event) {
         log('Connection closed: ' + event.code + ' ' + event.reason, 'error');

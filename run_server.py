@@ -63,6 +63,7 @@ class Client:
                 'op': 'announce',
                 'msg': f"{name} connected"
             })
+            return self.write({'op': 'authok'})
 
     async def sender(self):
         while True:
