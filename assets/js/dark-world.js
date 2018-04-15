@@ -134,5 +134,53 @@ function animate() {
 }
 
 
+function log(msg, className) {
+    var msg = $('<li>').text(msg).appendTo(messages);
+    if (className) {
+        msg.addClass(className);
+    }
+    setTimeout(
+        $.proxy(msg.fadeOut, msg),
+        5000,
+        500,
+        $.proxy(msg.remove, msg)
+    );
+}
+
+
+var player_name = null;
+
+
+function connect() {
+    var ws = new WebSocket("ws://127.0.0.1:5988/");
+
+    function send_msg(msg) {
+        ws.send(JSON.stringify(msg));
+    }
+
+    while (!player_name) {
+        player_name = prompt('What is your name?');
+    };
+    var messages = $('<ul id="messages">').appendTo(document.body);
+    ws.onopen = function () {
+        log('Connection established')
+        send_msg({
+            'op': 'auth',
+            'name': player_name
+        });
+    };
+    ws.onmessage = function (event) {
+        let params = JSON.parse(event.data);
+        if (params.op == 'announce') {
+            log(params.msg);
+        }
+    };
+    ws.onclose = function (event) {
+        log('Connection closed: ' + event.code + ' ' + event.reason, 'error');
+        setTimeout(connect, 5000);
+    };
+}
+
 init();
+connect();
 animate();

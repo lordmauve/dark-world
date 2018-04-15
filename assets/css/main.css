@@ -1,0 +1,33 @@
+body {
+    font-family: Monospace;
+    background-color: #000;
+    color: #fff;
+    margin: 0px;
+    overflow: hidden;
+}
+
+h1 {
+    margin: 0;
+    color: #fff;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+    display:block;
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+}
+
+#messages {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    z-index: 500;
+}
+
+#messages .error {
+    color: #c00;
+}
+
+#messages .say {
+    color: #0a0;
+}
