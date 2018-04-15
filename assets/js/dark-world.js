@@ -1,10 +1,57 @@
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var container, stats, controls;
-var camera, scene, renderer, light;
+var camera, scene, renderer, light, sun;
 
 const tex_loader = new THREE.TextureLoader();
 const model_loader = new THREE.GLTFLoader();
+
+const INTERP = {
+    linear: function(x) {
+        return x;
+    },
+
+    hop: function(x) {
+        return -4 * x * (x - 1);
+    }
+};
+
+
+function animateProps(obj, attrs, opts) {
+    var opts = opts || {};
+    var start = 0;
+    var duration = opts.duration || 100;
+    var interp = opts.interp || INTERP.linear;
+    var initial = {};
+    for (k in attrs) {
+        initial[k] = obj[k];
+    }
+    function step(timestamp) {
+        if (!start) start = timestamp;
+        var t = Math.max(
+            Math.min((timestamp - start) / duration, 1),
+            0
+        );
+        var frac = interp(t);
+        var invfrac = 1.0 - frac;
+
+        for (k in attrs) {
+            obj[k] = invfrac * initial[k] + frac * attrs[k];
+        }
+
+        if (opts.each_frame) {
+            opts.each_frame();
+        }
+        if (t < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            if (opts.on_finish) {
+                opts.on_finish();
+            }
+        }
+    }
+    window.requestAnimationFrame(step);
+}
 
 
 function load_skin(name) {
@@ -35,6 +82,7 @@ function load_model(name, skin, onload) {
     });
 }
 
+const SHADOW_SIZE = 100;
 const TILE_SIZE = 16;
 const SLAB = new THREE.MeshBasicMaterial({
     color: 0x111111,
@@ -97,14 +145,19 @@ function init() {
     scene.background = new THREE.Color(0x222222);
     scene.add(ground);
 
-    light = new THREE.DirectionalLight(0xffffff);
-    light.castShadow = true;
-    light.position.set( -20, 6, -10 );
-    light.shadow.mapSize.width = 1024;  // default
-    light.shadow.mapSize.height = 1024; // default
-    light.shadow.camera.near = 0.5;    // default
-    light.shadow.camera.far = 100;     // default
-    scene.add( light );
+    sun = new THREE.DirectionalLight(0xffffff);
+    sun.castShadow = true;
+    sun.position.set( -200, 200, -100 );
+    sun.shadow.mapSize.width = 1024;  // default
+    sun.shadow.mapSize.height = 1024; // default
+    sun.shadow.camera.left = -SHADOW_SIZE;
+    sun.shadow.camera.right = SHADOW_SIZE;
+    sun.shadow.camera.bottom = -SHADOW_SIZE;
+    sun.shadow.camera.top = SHADOW_SIZE;
+    sun.shadow.camera.near = 0.5;    // default
+    sun.shadow.camera.far = 1000;     // default
+    scene.add( sun );
+    scene.add(sun.target);
 
     light = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add( light );
@@ -173,6 +226,27 @@ function to_world(coord) {
 function move_camera(x, z) {
     camera.position.set(x - 30, 100, z + 100);
     camera.lookAt(x, 0, z);
+    sun.position.set(x - 200, 200, z - 100);
+    sun.target.position.set(x, 0, z);
+}
+
+function pan_camera(x, z) {
+    animateProps(camera.position,
+        {
+            x: x - 30,
+            z: z + 100,
+        },
+        {
+            duration: 100,
+            each_frame: function () {
+                var cx = camera.position.x + 30;
+                var cz = camera.position.z - 100;
+                camera.lookAt(cx, 0, cz);
+                sun.position.set(cx - 200, 200, cz - 100);
+                sun.target.position.set(cx, 0, cz);
+            }
+        }
+    );
 }
 
 function refresh(msg) {
@@ -194,9 +268,53 @@ function on_moved(msg) {
     const existing = scene.getObjectByName(obj.name);
     const [x, z] = to_world(msg.to_pos);
     if (existing) {
-        existing.position.x = x;
-        existing.position.z = z;
-        existing.rotation.y = obj.dir * Math.PI / 2;
+        animateProps(
+            existing.position,
+            {
+                x: x,
+                z: z
+            },
+            {
+                duration: 100
+            }
+        );
+        animateProps(
+            existing.position,
+            {
+                y: 4
+            },
+            {
+                duration: 100,
+                interp: INTERP.hop,
+                on_finish: function () {
+                    existing.position.y = 0;
+                }
+            }
+        );
+        existing.rotation.order = 'YXZ';
+        var target_rotation = obj.dir * Math.PI / 2;
+        animateProps(
+            existing.rotation,
+            {
+                y: target_rotation
+            },
+            {
+                duration: 100
+            }
+        );
+
+        var hop = (Math.random() > 0.5) ? -0.1 : 0.1;
+        animateProps(
+            existing.rotation,
+            {
+                z: hop,
+            },
+            {
+                duration: 100,
+                interp: INTERP.hop,
+                on_finish: function () { existing.rotation.z = 0; }
+            }
+        );
     } else {
         load_model(obj.model, obj.skin, function(model) {
             model.name = obj.name;
@@ -206,7 +324,7 @@ function on_moved(msg) {
         });
     }
     if (msg.track) {
-        move_camera(x, z);
+        pan_camera(x, z);
     }
 }
 
@@ -254,7 +372,7 @@ HANDLERS = {
 
 
 function connect() {
-    ws = new WebSocket("ws://127.0.0.1:5988/");
+    ws = new WebSocket("ws://" + location.host + "/ws");
 
     var messages = $('<ul id="messages">').appendTo(document.body);
     ws.onopen = function () {
@@ -295,7 +413,6 @@ const KEYMAP = {
 function initInput() {
    $(window).bind('keydown', function(event) {
         var keyCode = event.which;
-        console.log(keyCode);
         op = KEYMAP[keyCode];
         if (op) {
             send_msg({'op': op});

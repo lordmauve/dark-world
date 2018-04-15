@@ -14,8 +14,8 @@ import weakref
 from enum import IntEnum
 from collections import namedtuple
 
+from aiohttp import web
 import asyncio_redis
-import websockets
 
 # IP Address of Redis storage
 REDIS = ('172.17.0.2', 6379)
@@ -121,7 +121,7 @@ class World:
             # We still signal the move in order to update direction
             self.get_subscribers(from_pos).move(obj, from_pos, from_pos)
             raise Collision(
-                f'Target position {pos} is occupied by {self.grid[pos].name}'
+                f'Target position {to_pos} is occupied by {self.grid[to_pos].name}'
             )
         obj.pos = to_pos
         del self.grid[from_pos]
@@ -362,13 +362,13 @@ class Client:
             msg = await self.outqueue.get()
             if not msg:
                 break
-            await self.ws.send(msg)
+            await self.ws.send_str(msg)
 
     async def receiver(self):
         try:
-            async for js in self.ws:
+            async for m in self.ws:
                 # TODO: flood protection
-                msg = json.loads(js)
+                msg = m.json()
                 op = msg.pop('op')
                 if not self.name and op != 'auth':
                     self.write({
@@ -399,15 +399,30 @@ async def connect_redis(address, port=6379):
     redis = await asyncio_redis.Connection.create(address, port=port)
 
 
-async def connect(websocket, path):
-    c = Client(websocket)
+async def index(request):
+    """Serve the index page."""
+    with open('assets/index.html') as f:
+        return web.Response(
+            content_type='text/html',
+            text=f.read()
+        )
+
+
+async def open_ws(request):
+    ws = web.WebSocketResponse()
+    await ws.prepare(request)
+    c = Client(ws)
     loop.create_task(c.sender())
     await c.receiver()
 
 
+app = web.Application()
+app.add_routes([
+    web.get('/', index),
+    web.get('/ws', open_ws),
+    web.static('/', 'assets'),
+])
+
 loop = asyncio.get_event_loop()
 loop.run_until_complete(connect_redis(*REDIS))
-loop.run_until_complete(
-    websockets.serve(connect, 'localhost', 5988)
-)
-loop.run_forever()
+web.run_app(app, port=8000)
