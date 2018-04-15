@@ -22,10 +22,17 @@ REDIS = ('172.17.0.2', 6379)
 
 
 class Direction(IntEnum):
-    NORTH = 0
+    NORTH = 2
     EAST = 1
-    SOUTH = 2
+    SOUTH = 0
     WEST = 3
+
+DIRECTION_MAP = {
+    Direction.NORTH: (0, -1),
+    Direction.SOUTH: (0, 1),
+    Direction.WEST: (-1, 0),
+    Direction.EAST: (1, 0),
+}
 
 
 class Rect(namedtuple('BaseRect', 'x1 x2 y1 y2')):
@@ -77,15 +84,16 @@ class World:
             if (x, y) not in self.grid:
                 return x, y
 
-    def get(self, pos, radius=3):
-        objects = {}
+    def query(self, pos, radius=3):
+        """Iterate over objects in the world."""
         for x, y in Rect.from_center(pos, radius).coords():
             if not (0 <= x < self.size):
                 continue
             if not (0 <= y < self.size):
                 continue
-            objects[x, y] = self.grid.get((x, y))
-        return objects
+            obj = self.grid.get((x, y))
+            if obj:
+                yield obj
 
     def spawn(self, obj, pos=None, effect=None):
         """Spawn an object into the grid."""
@@ -108,12 +116,16 @@ class World:
 
     def move(self, obj, to_pos):
         """Move the object in the grid."""
-        if to_pos in grid:
+        from_pos = obj.pos
+        if to_pos in self.grid:
+            # We still signal the move in order to update direction
+            self.get_subscribers(from_pos).move(obj, from_pos, from_pos)
             raise Collision(
                 f'Target position {pos} is occupied by {self.grid[pos].name}'
             )
-        from_pos = obj.pos
         obj.pos = to_pos
+        del self.grid[from_pos]
+        self.grid[to_pos] = obj
         self.get_subscribers(from_pos, to_pos).move(obj, from_pos, to_pos)
 
     def kill(self, obj, effect=None):
@@ -177,14 +189,26 @@ world = World(5)
 
 
 class Actor:
-    def __init__(self, name, world):
+    def __init__(self, name, world, pos=None, direction=Direction.NORTH):
         self.name = name
+        self.direction = direction
         self.world = world
-        self.world.spawn(self)
+        self.world.spawn(self, pos=pos)
 
     def move(self, to_pos):
         """Move the actor in the world."""
         self.world.move(self, to_pos)
+
+    def move_step(self, direction):
+        """Move by one step in the given direction."""
+        self.direction = direction
+        dx, dy = DIRECTION_MAP[direction]
+        x, y = self.pos
+        to_pos = x + dx, y + dy
+        try:
+            self.world.move(self, to_pos)
+        except Collision:
+            pass
 
     def kill(self, effect=None):
         """Remove the actor from the world."""
@@ -196,7 +220,6 @@ class PC(Actor):
         super().__init__(f'Player-{client.name}', world)
         self.client = client
         self.sight = 3
-        self.direction = Direction.NORTH
 
     def to_json(self):
         return {
@@ -204,7 +227,47 @@ class PC(Actor):
             'model': 'advancedCharacter',
             'skin': 'adventurer',
             'pos': self.pos,
+            'dir': self.direction.value
         }
+
+
+class ActorSight:
+    """Base class for subscribing to world events."""
+    def __init__(self, actor):
+        self.client = actor.client
+        self.actor = actor
+        self.update()
+        self.actor.world.subscribe(self)
+
+    def update(self):
+        self.rect = Rect.from_center(self.actor.pos, self.actor.sight)
+
+    def moved(self, obj, from_pos, to_pos):
+        self.client.write({
+            'op': 'moved',
+            'obj': obj.to_json(),
+            'from_pos': from_pos,
+            'to_pos': to_pos,
+            'track': obj is self.actor
+        })
+        if obj is self.actor:
+            self.update()
+
+    def spawned(self, obj, pos, effect):
+        self.client.write({
+            'op': 'spawned',
+            'obj': obj.to_json(),
+            'effect': effect,
+            'track': obj is self.actor
+        })
+
+    def killed(self, obj, pos, effect):
+        self.client.write({
+            'op': 'killed',
+            'obj': obj.to_json(),
+            'effect': effect,
+            'track': obj is self.actor
+        })
 
 
 class Client:
@@ -236,7 +299,20 @@ class Client:
             'msg': f"{self.name} disconnected"
         })
         self.clients.pop(self.name, None)
-        self.actor.kill(effect='disconnect')
+        if self.actor:
+            self.actor.kill(effect='disconnect')
+
+    def handle_west(self):
+        self.actor.move_step(Direction.WEST)
+
+    def handle_east(self):
+        self.actor.move_step(Direction.EAST)
+
+    def handle_north(self):
+        self.actor.move_step(Direction.NORTH)
+
+    def handle_south(self):
+        self.actor.move_step(Direction.SOUTH)
 
     def handle_auth(self, name):
         #TODO: validate name
@@ -260,25 +336,26 @@ class Client:
         })
         self.write({'op': 'authok'})
 
-        self.actor = PC(self)
+        self.spawn_actor()
         self.handle_refresh()
+
+    def spawn_actor(self):
+        self.actor = PC(self)
+        self.sight = ActorSight(self.actor)
 
     def handle_refresh(self):
         center = self.actor.pos
-        raw_objs = self.actor.world.get(center, self.actor.sight)
-        objs = {}
-        for pos, obj in objs.items():
-            x, y = pos
-            xy = x * 2 << 16 + y
-            if obj is not None:
-                obj = obj.to_json()
-            objs[xy] = obj
+        objs = []
+        for obj in world.query(center, self.actor.sight):
+            objs.append(obj.to_json())
 
-        self.write({
+        msg = {
             'op': 'refresh',
             'pos': center,
             'objs': objs
-        })
+        }
+        print(msg)
+        self.write(msg)
 
     async def sender(self):
         while True:

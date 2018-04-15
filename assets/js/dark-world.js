@@ -19,6 +19,7 @@ function load_model(name, skin, onload) {
         gltf.scene.traverse( function ( child ) {
             if ( child.isMesh ) {
                 if (skin) {
+                    const skin = load_skin('adventurer');
                     child.material.map = skin;
                 }
                 child.castShadow = true;
@@ -34,21 +35,36 @@ function load_model(name, skin, onload) {
     });
 }
 
-
-const SLAB = new THREE.MeshPhongMaterial({
+const TILE_SIZE = 16;
+const SLAB = new THREE.MeshBasicMaterial({
     color: 0x111111,
-    shininess: 30,
-    side: THREE.DoubleSide
+    side: THREE.DoubleSide,
+    opacity: 0.1,
+    transparent: true
 });
+
+const terrain = tex_loader.load('textures/terrain.png');
+terrain.flip_y = false;
+const WORLD = new THREE.MeshPhongMaterial({
+    shininess: 30,
+    side: THREE.DoubleSide,
+    map: terrain
+});
+
+var geometry = new THREE.PlaneGeometry(10240, 10240);
+var ground = new THREE.Mesh(geometry, WORLD);
+ground.receiveShadow = true;
+ground.rotation.x = -Math.PI * 0.5;
 
 
 function add_tile(material, x, z) {
-    var geometry = new THREE.PlaneGeometry(15.8, 15.8);
+    var geometry = new THREE.PlaneGeometry(15, 15);
     var plane = new THREE.Mesh(geometry, material);
     plane.receiveShadow = true;
     plane.rotation.x = -Math.PI * 0.5;
-    plane.position.x = x * 16;
-    plane.position.z = z * 16;
+    plane.position.x = x * TILE_SIZE;
+    plane.position.y = 0.1;
+    plane.position.z = z * TILE_SIZE;
     scene.add( plane );
 }
 
@@ -61,10 +77,10 @@ function init() {
     camera.lookAt(0, 0, 0);
 
     /* Allow controlling view with the mouse
+     */
     controls = new THREE.OrbitControls( camera );
     controls.target.set( 0, -2, -2 );
     controls.update();
-    */
 
     // envmap
     var path = 'textures/cube/skyboxsun25deg/';
@@ -75,11 +91,11 @@ function init() {
         path + 'pz' + format, path + 'nz' + format
     ] );
 
-    var skin = load_skin('adventurer');
     var head;
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x222222);
+    scene.add(ground);
 
     light = new THREE.DirectionalLight(0xffffff);
     light.castShadow = true;
@@ -107,21 +123,18 @@ function init() {
 
     window.addEventListener( 'resize', onWindowResize, false );
 
-    load_model('advancedCharacter', skin, function (model) {
-        head = model.getObjectByName('Head1');
-    });
-
     // stats
     stats = new Stats();
     container.appendChild( stats.dom );
 
+    /* Animate the head
     var t = 0;
     setInterval(function () {
         t += 0.01;
         if (head) {
             head.rotation.y = 0.3 * Math.sin(t);
         }
-    }, 10);
+    }, 10); */
 }
 
 
@@ -153,6 +166,57 @@ function log(msg, className) {
     );
 }
 
+function to_world(coord) {
+    return [coord[0] * TILE_SIZE, coord[1] * TILE_SIZE];
+}
+
+function move_camera(x, z) {
+    camera.position.set(x - 30, 100, z + 100);
+    camera.lookAt(x, 0, z);
+}
+
+function refresh(msg) {
+    let [x, z] = to_world(msg.pos);
+    move_camera(x, z);
+    for (let obj of msg.objs) {
+        let [x, z] = to_world(obj.pos);
+        load_model(obj.model, obj.skin, function(model) {
+            model.name = obj.name;
+            model.position.x = x;
+            model.position.z = z;
+            model.rotation.y = obj.dir * Math.PI / 2;
+        });
+    }
+}
+
+function on_moved(msg) {
+    const obj = msg.obj;
+    const existing = scene.getObjectByName(obj.name);
+    const [x, z] = to_world(msg.to_pos);
+    if (existing) {
+        existing.position.x = x;
+        existing.position.z = z;
+        existing.rotation.y = obj.dir * Math.PI / 2;
+    } else {
+        load_model(obj.model, obj.skin, function(model) {
+            model.name = obj.name;
+            model.position.x = x;
+            model.position.z = z;
+            model.rotation.y = obj.dir * Math.PI / 2;
+        });
+    }
+    if (msg.track) {
+        move_camera(x, z);
+    }
+}
+
+function on_killed(msg) {
+    var existing = scene.getObjectByName(msg.name);
+    if (existing) {
+        scene.remove(existing);
+    }
+}
+
 var ws;
 var player_name = window.localStorage.player_name;
 
@@ -182,8 +246,12 @@ HANDLERS = {
     },
     'error': function (params) {
         log(params.msg, 'error');
-    }
+    },
+    'refresh': refresh,
+    'moved': on_moved,
+    'killed': on_killed
 };
+
 
 function connect() {
     ws = new WebSocket("ws://127.0.0.1:5988/");
@@ -206,7 +274,7 @@ function connect() {
     };
     ws.onclose = function (event) {
         log('Connection closed: ' + event.code + ' ' + event.reason, 'error');
-        setTimeout(connect, 5000);
+        setTimeout(connect, 2000);
     };
 }
 
