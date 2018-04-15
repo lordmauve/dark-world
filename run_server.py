@@ -10,7 +10,11 @@ import traceback
 import inspect
 import asyncio
 
+import asyncio_redis
 import websockets
+
+# IP Address of Redis storage
+REDIS = ('172.17.0.2', 6379)
 
 
 class Client:
@@ -92,13 +96,18 @@ class Client:
                     traceback.print_exc()
                     self.write({
                         'op': 'error',
-                        'msg': 'Server error',
-                        'tb': traceback.format_exc()
+                        'msg': f'{type(e).__name__}: {e}',
                     })
         except websockets.exceptions.ConnectionClosed:
             pass
         finally:
             self.close()
+
+
+async def connect_redis(address, port=6379):
+    global redis
+
+    redis = await asyncio_redis.Connection.create(address, port=port)
 
 
 async def connect(websocket, path):
@@ -108,6 +117,7 @@ async def connect(websocket, path):
 
 
 loop = asyncio.get_event_loop()
+loop.run_until_complete(connect_redis(*REDIS))
 loop.run_until_complete(
     websockets.serve(connect, 'localhost', 5988)
 )
