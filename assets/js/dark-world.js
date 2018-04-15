@@ -54,15 +54,17 @@ function add_tile(material, x, z) {
 
 
 function init() {
-    container = document.createElement( 'div' );
-    document.body.appendChild( container );
+    container = $('#viewport')[0];
 
     camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000);
-    camera.position.set(-100, 100, -100);
+    camera.position.set(-30, 100, -100);
+    camera.lookAt(0, 0, 0);
 
+    /* Allow controlling view with the mouse
     controls = new THREE.OrbitControls( camera );
     controls.target.set( 0, -2, -2 );
     controls.update();
+    */
 
     // envmap
     var path = 'textures/cube/skyboxsun25deg/';
@@ -81,7 +83,7 @@ function init() {
 
     light = new THREE.DirectionalLight(0xffffff);
     light.castShadow = true;
-    light.position.set( -10, 6, -10 );
+    light.position.set( -20, 6, -10 );
     light.shadow.mapSize.width = 1024;  // default
     light.shadow.mapSize.height = 1024; // default
     light.shadow.camera.near = 0.5;    // default
@@ -99,7 +101,7 @@ function init() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setPixelRatio( window.devicePixelRatio / 2);
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize( window.innerWidth, window.innerHeight);
     renderer.gammaOutput = true;
     container.appendChild( renderer.domElement );
 
@@ -127,7 +129,7 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize( window.innerWidth, window.innerHeight);
 }
 
 
@@ -177,6 +179,9 @@ HANDLERS = {
     },
     'authok': function (params) {
         window.localStorage.player_name = player_name;
+    },
+    'error': function (params) {
+        log(params.msg, 'error');
     }
 };
 
@@ -193,7 +198,11 @@ function connect() {
     };
     ws.onmessage = function (event) {
         let params = JSON.parse(event.data);
-        HANDLERS[params.op](params);
+        let h = HANDLERS[params.op];
+        if (!h) {
+            throw "no handler for " + params.op;
+        }
+        h(params);
     };
     ws.onclose = function (event) {
         log('Connection closed: ' + event.code + ' ' + event.reason, 'error');
@@ -201,6 +210,32 @@ function connect() {
     };
 }
 
+
+const KEYMAP = {
+    38: 'north', // Up
+    87: 'north', // W
+    40: 'south', // Down
+    83: 'south', // S
+    37: 'west',  // Left
+    65: 'west',  // W
+    39: 'east',  // Right
+    68: 'east',  // D
+    32: 'act',  // Space
+};
+
+
+function initInput() {
+   $(window).bind('keydown', function(event) {
+        var keyCode = event.which;
+        console.log(keyCode);
+        op = KEYMAP[keyCode];
+        if (op) {
+            send_msg({'op': op});
+        }
+    });
+}
+
 init();
+initInput();
 connect();
 animate();
