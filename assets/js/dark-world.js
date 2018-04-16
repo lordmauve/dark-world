@@ -106,6 +106,13 @@ const SLAB = new THREE.MeshBasicMaterial({
     transparent: true
 });
 
+const TELEPORT = new THREE.MeshBasicMaterial({
+    color: 0x1188DD,
+    side: THREE.FrontSize,
+    opacity: 0.5,
+    transparent: true
+});
+
 const terrain = tex_loader.load('textures/terrain.png');
 terrain.flip_y = false;
 const WORLD = new THREE.MeshPhongMaterial({
@@ -247,6 +254,48 @@ function fadeOut(model, params) {
     });
     if (!children)
         scene.remove(model);
+}
+
+function wrapModel(model) {
+    scene.remove(model);
+    var wrapper = new THREE.Scene();
+    wrapper.add(model)
+    wrapper.position = model.position;
+    model.position.set(0, 0, 0);
+    scene.add(wrapper);
+    return wrapper;
+}
+
+function unwrapModel(model) {
+    const wrapper = model.parent;
+    scene.remove(wrapper);
+    model.position = wrapper.position;
+    scene.add(model);
+}
+
+function teleportOut(model) {
+    scene.remove(model);
+    const wrapper = wrapModel(model);
+    wrapper.overrideMaterial = TELEPORT;
+    model.traverse(function (c) { c.castShadow = false});
+    fadeOut(wrapper, {duration: 200});
+    animateProps(model.scale, {y: 10}, {duration: 200});
+}
+
+function teleportIn(model) {
+    const wrapper = wrapModel(model);
+    wrapper.overrideMaterial = TELEPORT;
+    model.traverse(function (c) { c.castShadow = false});
+    model.scale.y = 10;
+    scene.add(wrapper);
+    fadeIn(model, {duration: 200});
+    animateProps(model.scale, {y: 1}, {
+        duration: 200,
+        on_finish: function () {
+            unwrapModel(model);
+            model.traverse(function (c) { c.castShadow = true});
+        }
+    });
 }
 
 
@@ -414,6 +463,10 @@ function spawn_obj(obj, effect) {
             case "fade":
                 fadeIn(model, {duration: 200});
                 break;
+
+            case "teleport":
+                teleportIn(model);
+                break;
         }
     });
 }
@@ -425,6 +478,10 @@ function on_killed(msg) {
         switch (effect) {
             case "fade":
                 fadeOut(model, {duration: 200});
+                break;
+
+            case "teleport":
+                teleportOut(model);
                 break;
 
             default:

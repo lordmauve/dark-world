@@ -356,18 +356,20 @@ class Teleporter(Standable):
         if not isinstance(obj, PC):
             return
         obj.kill(effect='teleport')
-
-        # TODO: delay (without introducing race conditions)
-        target = self.target or create_dark_world()
-        try:
-            obj.spawn(target, pos=(0, 0), effect='teleport')
-        except Collision:
-            obj.spawn(target, effect='teleport')
         client = obj.client
         client.sight.destroy()
-        client.sight = ActorSight(obj)
-        obj.client.handle_refresh()
-        print(f'{self.name} moved to {target}')
+        target = self.target or create_dark_world()
+        obj.world = target
+
+        def respawn():
+            client.sight = ActorSight(obj)
+            obj.client.handle_refresh()
+            try:
+                obj.spawn(target, pos=(0, 0), effect='teleport')
+            except Collision:
+                obj.spawn(target, effect='teleport')
+            print(f'{self.name} moved to {target}')
+        loop.call_later(0.5, respawn)
 
     def on_exit(self, obj):
         print(f'{self.name} left by {obj.name}')
