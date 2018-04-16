@@ -169,7 +169,7 @@ function init() {
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.setPixelRatio( window.devicePixelRatio / 2);
+    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize( window.innerWidth, window.innerHeight);
     renderer.gammaOutput = true;
     container.appendChild( renderer.domElement );
@@ -250,16 +250,16 @@ function pan_camera(x, z) {
 }
 
 function refresh(msg) {
+    // Remove existing objects
+    scene.traverse( function ( child ) {
+        if (child.worldObj) {
+            scene.remove(child);
+        }
+    });
     let [x, z] = to_world(msg.pos);
     move_camera(x, z);
     for (let obj of msg.objs) {
-        let [x, z] = to_world(obj.pos);
-        load_model(obj.model, obj.skin, function(model) {
-            model.name = obj.name;
-            model.position.x = x;
-            model.position.z = z;
-            model.rotation.y = obj.dir * Math.PI / 2;
-        });
+        spawn_obj(obj);
     }
 }
 
@@ -328,8 +328,25 @@ function on_moved(msg) {
     }
 }
 
+function on_spawned(msg) {
+    spawn_obj(msg.obj, msg.effect);
+}
+
+
+function spawn_obj(obj, effect) {
+    let [x, z] = to_world(obj.pos);
+    load_model(obj.model, obj.skin, function(model) {
+        model.name = obj.name;
+        model.worldObj = true;
+        model.position.x = x;
+        model.position.z = z;
+        model.rotation.y = obj.dir * Math.PI / 2;
+    });
+}
+
 function on_killed(msg) {
-    var existing = scene.getObjectByName(msg.name);
+    var existing = scene.getObjectByName(msg.obj.name);
+    var effect = msg.effect || 'none';
     if (existing) {
         scene.remove(existing);
     }
@@ -367,7 +384,8 @@ HANDLERS = {
     },
     'refresh': refresh,
     'moved': on_moved,
-    'killed': on_killed
+    'killed': on_killed,
+    'spawned': on_spawned
 };
 
 

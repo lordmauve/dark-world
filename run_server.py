@@ -85,8 +85,17 @@ class World:
                 return x, y
 
     def query(self, pos, radius=3):
-        """Iterate over objects in the world."""
-        for x, y in Rect.from_center(pos, radius).coords():
+        """Iterate over objects in the world.
+
+        `pos` may be a position, in which case `radius` tiles around it are
+        considered, or a Rect, in which case `radius` is ignored.
+
+        """
+        if isinstance(pos, Rect):
+            r = pos
+        else:
+            r = Rect.from_center(pos, radius)
+        for x, y in r.coords():
             if not (0 <= x < self.size):
                 continue
             if not (0 <= y < self.size):
@@ -243,15 +252,30 @@ class ActorSight:
         self.rect = Rect.from_center(self.actor.pos, self.actor.sight)
 
     def moved(self, obj, from_pos, to_pos):
-        self.client.write({
-            'op': 'moved',
-            'obj': obj.to_json(),
-            'from_pos': from_pos,
-            'to_pos': to_pos,
-            'track': obj is self.actor
-        })
         if obj is self.actor:
+            could_see = set(self.actor.world.query(from_pos, self.actor.sight))
             self.update()
+            now_see = set(self.actor.world.query(to_pos, self.actor.sight))
+            for newobj in now_see - could_see:
+                self.spawned(newobj, newobj.pos, 'fade')
+            self.client.write({
+                'op': 'moved',
+                'obj': obj.to_json(),
+                'from_pos': from_pos,
+                'to_pos': to_pos,
+                'track': True
+            })
+            for lostobj in could_see - now_see:
+                self.killed(lostobj, lostobj.pos, 'fade')
+        else:
+            self.client.write({
+                'op': 'moved',
+                'obj': obj.to_json(),
+                'from_pos': from_pos,
+                'to_pos': to_pos,
+                'track': False
+            })
+
 
     def spawned(self, obj, pos, effect):
         self.client.write({
@@ -387,8 +411,6 @@ class Client:
                         'op': 'error',
                         'msg': f'{type(e).__name__}: {e}',
                     })
-        except websockets.exceptions.ConnectionClosed:
-            pass
         finally:
             self.close()
 
