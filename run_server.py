@@ -196,7 +196,7 @@ class Subscriber:
         pass
 
 
-world = World(5)
+world = World(10)
 
 
 class Actor:
@@ -261,8 +261,22 @@ class Scenery(Actor):
         }
 
 
+PLANTS = [
+    'nature/plant_bushDetailed',
+    'nature/plant_bushLarge',
+    'nature/plant_bush',
+    'nature/plant_bushSmall',
+    'nature/plant_flatLarge',
+    'nature/plant_flatSmall',
+]
+
+
 for _ in range(10):
-    Scenery('nature/plant_bushDetailed', world, direction=random.choice(list(Direction)))
+    Scenery(
+        random.choice(PLANTS),
+        world,
+        direction=random.choice(list(Direction))
+    )
 
 
 class ActorSight:
