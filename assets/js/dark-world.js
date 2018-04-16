@@ -191,6 +191,47 @@ function init() {
 }
 
 
+function fadeIn(model, params) {
+    model.traverse(function (child) {
+        if (child.material) {
+            const orig_transparent = child.material.transparent;
+            const orig_opacity = child.material.opacity || 1.0;
+            child.material.transparent = true;
+            child.material.opacity = 0;
+            const new_params = Object.assign({
+                on_finish: function () {
+                    child.material.transparent = orig_transparent;
+                }
+            }, params);
+            animateProps(child.material, {opacity: orig_opacity}, new_params);
+        }
+    });
+}
+
+
+function fadeOut(model, params) {
+    model.name = '';
+    var children = 0;
+    model.traverse(function (child) {
+        if (child.material) {
+            children++;
+            child.material.transparent = true;
+            const new_params = Object.assign({
+                on_finish: function () {
+                    children--;
+                    if (children == 0) {
+                        scene.remove(model);
+                    }
+                }
+            }, params);
+            animateProps(child.material, {opacity: 0}, new_params);
+        }
+    });
+    if (!children)
+        scene.remove(model);
+}
+
+
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -341,14 +382,27 @@ function spawn_obj(obj, effect) {
         model.position.x = x;
         model.position.z = z;
         model.rotation.y = obj.dir * Math.PI / 2;
+        switch (effect) {
+            case "fade":
+                fadeIn(model, {duration: 200});
+                break;
+        }
     });
 }
 
 function on_killed(msg) {
-    var existing = scene.getObjectByName(msg.obj.name);
+    var model = scene.getObjectByName(msg.obj.name);
     var effect = msg.effect || 'none';
-    if (existing) {
-        scene.remove(existing);
+    if (model) {
+        switch (effect) {
+            case "fade":
+                fadeOut(model, {duration: 200});
+                break;
+
+            default:
+                scene.remove(model);
+                break;
+        }
     }
 }
 
