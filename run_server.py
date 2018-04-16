@@ -5,17 +5,17 @@ if sys.version_info < (3, 6):
     sys.exit("The Dark World requires Python 3.6.")
 
 
-import json
-import traceback
-import inspect
-import asyncio
-import random
-import weakref
-from enum import IntEnum
-from collections import namedtuple
+import json  # noqa
+import traceback  # noqa
+import inspect  # noqa
+import asyncio  # noqa
+import random  # noqa
+import weakref  # noqa
+from enum import IntEnum  # noqa
+from collections import namedtuple  # noqa
 
-from aiohttp import web
-#import asyncio_redis
+from aiohttp import web  # noqa
+# import asyncio_redis
 
 # IP Address of Redis storage
 REDIS = ('172.17.0.2', 6379)
@@ -26,6 +26,7 @@ class Direction(IntEnum):
     EAST = 1
     SOUTH = 0
     WEST = 3
+
 
 DIRECTION_MAP = {
     Direction.NORTH: (0, -1),
@@ -130,7 +131,8 @@ class World:
             # We still signal the move in order to update direction
             self.get_subscribers(from_pos).move(obj, from_pos, from_pos)
             raise Collision(
-                f'Target position {to_pos} is occupied by {self.grid[to_pos].name}'
+                f'Target position {to_pos} is occupied '
+                f'by {self.grid[to_pos].name}'
             )
         obj.pos = to_pos
         del self.grid[from_pos]
@@ -275,7 +277,13 @@ class ActorSight:
                 'to_pos': to_pos,
                 'track': False
             })
-
+            if to_pos not in self.rect:
+                self.client.write({
+                    'op': 'killed',
+                    'obj': obj.to_json(),
+                    'effect': 'fade',
+                    'track': obj is self.actor
+                })
 
     def spawned(self, obj, pos, effect):
         self.client.write({
@@ -339,7 +347,7 @@ class Client:
         self.actor.move_step(Direction.SOUTH)
 
     def handle_auth(self, name):
-        #TODO: validate name
+        # TODO: validate name
         if self.name:
             return self.write({
                 'op': 'authfail',
@@ -415,10 +423,10 @@ class Client:
             self.close()
 
 
-#async def connect_redis(address, port=6379):
-#    global redis
+# async def connect_redis(address, port=6379):
+#     global redis
 #
-#    redis = await asyncio_redis.Connection.create(address, port=port)
+#     redis = await asyncio_redis.Connection.create(address, port=port)
 
 
 async def index(request):
@@ -447,5 +455,5 @@ app.add_routes([
 ])
 
 loop = asyncio.get_event_loop()
-#loop.run_until_complete(connect_redis(*REDIS))
+# loop.run_until_complete(connect_redis(*REDIS))
 web.run_app(app, port=8000)

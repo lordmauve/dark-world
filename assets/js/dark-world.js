@@ -357,11 +357,14 @@ function on_moved(msg) {
             }
         );
     } else {
+        let [x, z] = to_world(msg.from_pos);
         load_model(obj.model, obj.skin, function(model) {
             model.name = obj.name;
             model.position.x = x;
             model.position.z = z;
             model.rotation.y = obj.dir * Math.PI / 2;
+            on_moved(msg);
+            fadeIn(model, {duration: 200});
         });
     }
     if (msg.track) {
