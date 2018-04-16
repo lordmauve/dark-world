@@ -15,7 +15,7 @@ from enum import IntEnum
 from collections import namedtuple
 
 from aiohttp import web
-import asyncio_redis
+#import asyncio_redis
 
 # IP Address of Redis storage
 REDIS = ('172.17.0.2', 6379)
@@ -393,10 +393,10 @@ class Client:
             self.close()
 
 
-async def connect_redis(address, port=6379):
-    global redis
-
-    redis = await asyncio_redis.Connection.create(address, port=port)
+#async def connect_redis(address, port=6379):
+#    global redis
+#
+#    redis = await asyncio_redis.Connection.create(address, port=port)
 
 
 async def index(request):
@@ -424,5 +424,5 @@ app.add_routes([
 ])
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(connect_redis(*REDIS))
+#loop.run_until_complete(connect_redis(*REDIS))
 web.run_app(app, port=8000)

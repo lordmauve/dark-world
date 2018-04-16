@@ -1,2 +1,2 @@
-asyncio_redis==0.14.3
+#asyncio_redis==0.14.3
 aiohttp==3.1.3
