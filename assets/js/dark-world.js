@@ -1,7 +1,7 @@
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var container, stats, controls;
-var camera, scene, renderer, light, sun;
+var camera, scene, renderer, light, sun, ambient;
 
 const tex_loader = new THREE.TextureLoader();
 const model_loader = new THREE.GLTFLoader();
@@ -133,6 +133,7 @@ function add_tile(material, x, z) {
 
 
 function init() {
+    if (scene) return;
     container = $('#viewport')[0];
 
     camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000);
@@ -174,12 +175,14 @@ function init() {
     scene.add( sun );
     scene.add(sun.target);
 
-    light = new THREE.AmbientLight(0xffffff, 0.2);
-    scene.add( light );
+    ambient = new THREE.AmbientLight(0xffffff, 0.2);
+    scene.add(ambient);
 
+    /*
     add_tile(SLAB, 0, 0);
     add_tile(SLAB, 1, 0);
     add_tile(SLAB, 1, 1);
+    */
 
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.shadowMap.enabled = true;
@@ -307,16 +310,28 @@ function pan_camera(x, z) {
 
 function refresh(msg) {
     // Remove existing objects
-    scene.traverse( function ( child ) {
+    for (let i = 0; i < scene.children.length; i++) {
+        let child = scene.children[i];
         if (child.worldObj) {
             scene.remove(child);
+            i--;
         }
-    });
+    }
     let [x, z] = to_world(msg.pos);
     move_camera(x, z);
     for (let obj of msg.objs) {
         spawn_obj(obj);
     }
+    if (msg.world.sun_color)
+        sun.color.set(msg.world.sun_color);
+    if (msg.world.sun_intensity)
+        sun.intensity = msg.world.sun_intensity;
+    if (msg.world.ambient_color)
+        ambient.color.set(msg.world.ambient_color);
+    if (msg.world.ambient_intensity)
+        ambient.intensity = msg.world.ambient_intensity;
+    if (msg.world.title)
+        $('h1').text(msg.world.title);
 }
 
 function on_moved(msg) {

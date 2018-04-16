@@ -14,6 +14,7 @@ import weakref  # noqa
 from enum import IntEnum  # noqa
 from collections import namedtuple  # noqa
 
+import aiohttp  # nowa
 from aiohttp import web  # noqa
 # import asyncio_redis
 
@@ -71,11 +72,15 @@ class World:
     We allow subscribers to subscribe to see changes in the world.
 
     """
-    def __init__(self, size):
+    def __init__(self, size, metadata=None):
         self.grid = {}
         self.by_name = {}
+        self.metadata = metadata or {}
         self.subscriptions = weakref.WeakSet()
         self.size = size
+
+    def to_json(self):
+        return self.metadata
 
     def spawn_point(self):
         """Return a random unoccupied spawn point in the world."""
@@ -179,6 +184,9 @@ class World:
     def subscribe(self, subscriber):
         self.subscriptions.add(subscriber)
 
+    def unsubscribe(self, subscriber):
+        self.subscriptions.discard(subscriber)
+
     def get_subscribers(self, *pos):
         """Iterate over subscribers to a point in the grid."""
         found = SubscriberSet()
@@ -225,18 +233,49 @@ class Subscriber:
         pass
 
 
-world = World(10)
+light_world = World(
+    size=10,
+    metadata={
+        'title': 'The Light World',
+        'sun_color': 0xffffff,
+        'sun_intensity': 1,
+        'ambient_color': 0xffffff,
+        'ambient_intensity': 0.2
+    }
+)
+
+
+def create_dark_world():
+    """Create an instance of a dark world."""
+    w = World(
+        size=10,
+        metadata={
+            'title': 'The Dark World',
+            'sun_color': 0x2222ff,
+            'sun_intensity': 0.2,
+            'ambient_color': 0x0000ff,
+            'ambient_intensity': 0.1
+        }
+    )
+    Teleporter(target=light_world).spawn(w, (0, 0))
+    return w
 
 
 class Actor:
     standable = False
     below = None
 
-    def __init__(self, name, world, pos=None, direction=Direction.NORTH):
+    def __init__(self, name):
         self.name = name
-        self.direction = direction
+        self.below = None
+        self.world = None
+        self.pos = (0, 0)
+        self.direction = Direction.NORTH
+
+    def spawn(self, world, pos=None, direction=Direction.NORTH, effect=None):
         self.world = world
-        self.world.spawn(self, pos=pos)
+        self.direction = direction
+        self.world.spawn(self, pos=pos, effect=effect)
 
     def move(self, to_pos):
         """Move the actor in the world."""
@@ -260,7 +299,7 @@ class Actor:
 
 class PC(Actor):
     def __init__(self, client):
-        super().__init__(f'Player-{client.name}', world)
+        super().__init__(f'Player-{client.name}')
         self.client = client
         self.sight = 8
 
@@ -276,18 +315,19 @@ class PC(Actor):
 
 class Scenery(Actor):
     next_uid = 0
+    scale = 16.0
 
-    def __init__(self, model, world, pos=None, direction=Direction.NORTH):
+    def __init__(self, model):
         self.model = model
         self.uid = self.next_uid
         type(self).next_uid += 1
-        super().__init__(f'{model}-{self.uid}', world, pos, direction)
+        super().__init__(f'{model}-{self.uid}')
 
     def to_json(self):
         return {
             'name': self.name,
             'model': self.model,
-            'scale': 16.0,
+            'scale': self.scale,
             'pos': self.pos,
             'dir': self.direction.value
         }
@@ -298,7 +338,36 @@ class Standable(Scenery):
     standable = True
 
     def on_enter(self, obj):
-        print(f'{self.name} stood on by {obj.name}')
+        """Subclasses should implement this to handle being stood on."""
+
+    def on_exit(self, obj):
+        """Subclasses should implement this to handle users exiting."""
+
+
+class Teleporter(Standable):
+    model = 'nature/campfireStones_rocks'
+    scale = 10
+
+    def __init__(self, target=None):
+        self.target = target
+        super().__init__(self.model)
+
+    def on_enter(self, obj):
+        if not isinstance(obj, PC):
+            return
+        obj.kill(effect='teleport')
+
+        # TODO: delay (without introducing race conditions)
+        target = self.target or create_dark_world()
+        try:
+            obj.spawn(target, pos=(0, 0), effect='teleport')
+        except Collision:
+            obj.spawn(target, effect='teleport')
+        client = obj.client
+        client.sight.destroy()
+        client.sight = ActorSight(obj)
+        obj.client.handle_refresh()
+        print(f'{self.name} moved to {target}')
 
     def on_exit(self, obj):
         print(f'{self.name} left by {obj.name}')
@@ -325,19 +394,27 @@ PLANTS = [
     'nature/flower_beige1',
     'nature/flower_beige2',
     'nature/flower_beige3',
-    'nature/wheat_beige3',
+    'nature/mushroom_brownGroup',
+    'nature/mushroom_brown',
+    'nature/mushroom_brownTall',
+    'nature/mushroom_redGroup',
+    'nature/mushroom_red',
+    'nature/mushroom_redTall',
 ]
 
+Teleporter().spawn(light_world, (0, 0))
 
 for _ in range(10):
     Scenery(
         random.choice(BUSHES),
-        world,
+    ).spawn(
+        light_world,
         direction=random.choice(list(Direction))
     )
     Standable(
         random.choice(PLANTS),
-        world,
+    ).spawn(
+        light_world,
         direction=random.choice(list(Direction))
     )
 
@@ -349,6 +426,9 @@ class ActorSight:
         self.actor = actor
         self.update()
         self.actor.world.subscribe(self)
+
+    def destroy(self):
+        self.actor.world.unsubscribe(self)
 
     def update(self):
         self.rect = Rect.from_center(self.actor.pos, self.actor.sight)
@@ -473,15 +553,17 @@ class Client:
 
     def spawn_actor(self):
         self.actor = PC(self)
+        self.actor.spawn(light_world)
         self.sight = ActorSight(self.actor)
 
     def handle_refresh(self):
         center = self.actor.pos
         objs = []
-        for obj in world.query(center, self.actor.sight):
+        for obj in self.actor.world.query(center, self.actor.sight):
             objs.append(obj.to_json())
         self.write({
             'op': 'refresh',
+            'world': self.actor.world.to_json(),
             'pos': center,
             'objs': objs
         })
@@ -550,6 +632,17 @@ app.add_routes([
     web.get('/ws', open_ws),
     web.static('/', 'assets'),
 ])
+
+
+async def on_shutdown(app):
+    for client in list(Client.clients.values()):
+        ws = client.ws
+        await ws.close(
+            code=aiohttp.WSCloseCode.GOING_AWAY,
+            message='Server shutdown'
+        )
+
+app.on_shutdown.append(on_shutdown)
 
 loop = asyncio.get_event_loop()
 # loop.run_until_complete(connect_redis(*REDIS))
