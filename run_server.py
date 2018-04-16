@@ -102,8 +102,9 @@ class World:
             if not (0 <= y < self.size):
                 continue
             obj = self.grid.get((x, y))
-            if obj:
+            while obj:
                 yield obj
+                obj = obj.below
 
     def spawn(self, obj, pos=None, effect=None):
         """Spawn an object into the grid."""
@@ -113,36 +114,64 @@ class World:
             )
         if not pos:
             pos = self.spawn_point()
-        else:
-            if pos in self.grid:
-                raise Collision(
-                    f'Position {pos} already contains {self.grid[pos].name}'
-                )
+
+        self._push(obj, pos)
         obj.pos = pos
-        self.grid[pos] = obj
         self.by_name[obj.name] = obj
         self.get_subscribers(pos).spawn(obj, pos, effect)
         return pos
 
+    def _push(self, obj, pos):
+        """Push an actor onto the actor stack at pos."""
+        if pos not in self.grid:
+            self.grid[pos] = obj
+            obj.below = None
+            return
+
+        existing = self.grid[pos]
+
+        if not existing.standable:
+            raise Collision(
+                f'Target position {pos} is occupied '
+                f'by {existing.name}'
+            )
+        self.grid[pos] = obj
+        obj.below = existing
+
+    def _pop(self, pos):
+        o = self.grid[pos]
+        if o.below is not None:
+            self.grid[pos] = o.below
+        else:
+            del self.grid[pos]
+
     def move(self, obj, to_pos):
         """Move the object in the grid."""
         from_pos = obj.pos
-        if to_pos in self.grid:
+        below = obj.below
+        try:
+            self._push(obj, to_pos)
+        except Collision:
             # We still signal the move in order to update direction
             self.get_subscribers(from_pos).move(obj, from_pos, from_pos)
-            raise Collision(
-                f'Target position {to_pos} is occupied '
-                f'by {self.grid[to_pos].name}'
-            )
-        obj.pos = to_pos
-        del self.grid[from_pos]
-        self.grid[to_pos] = obj
-        self.get_subscribers(from_pos, to_pos).move(obj, from_pos, to_pos)
+            raise
+        else:
+            if below is not None:
+                self.grid[from_pos] = below
+            else:
+                del self.grid[from_pos]
+            obj.pos = to_pos
+            subs = self.get_subscribers(from_pos, to_pos)
+            subs.move(obj, from_pos, to_pos)
+            if below:
+                below.on_exit(obj)
+            if obj.below:
+                obj.below.on_enter(obj)
 
     def kill(self, obj, effect=None):
         """Remove an object from the grid."""
         pos = obj.pos
-        del self.grid[pos]
+        self._pop(pos)
         del self.by_name[obj.name]
         self.get_subscribers(pos).kill(obj, pos, effect)
         return pos
@@ -200,6 +229,9 @@ world = World(10)
 
 
 class Actor:
+    standable = False
+    below = None
+
     def __init__(self, name, world, pos=None, direction=Direction.NORTH):
         self.name = name
         self.direction = direction
@@ -230,7 +262,7 @@ class PC(Actor):
     def __init__(self, client):
         super().__init__(f'Player-{client.name}', world)
         self.client = client
-        self.sight = 3
+        self.sight = 8
 
     def to_json(self):
         return {
@@ -261,7 +293,18 @@ class Scenery(Actor):
         }
 
 
-PLANTS = [
+class Standable(Scenery):
+    """Scenery you can stand on."""
+    standable = True
+
+    def on_enter(self, obj):
+        print(f'{self.name} stood on by {obj.name}')
+
+    def on_exit(self, obj):
+        print(f'{self.name} left by {obj.name}')
+
+
+BUSHES = [
     'nature/plant_bushDetailed',
     'nature/plant_bushLarge',
     'nature/plant_bush',
@@ -270,9 +313,29 @@ PLANTS = [
     'nature/plant_flatSmall',
 ]
 
+PLANTS = [
+    'nature/grass_dense',
+    'nature/grass',
+    'nature/flower_red1',
+    'nature/flower_red2',
+    'nature/flower_red3',
+    'nature/flower_blue1',
+    'nature/flower_blue2',
+    'nature/flower_blue3',
+    'nature/flower_beige1',
+    'nature/flower_beige2',
+    'nature/flower_beige3',
+    'nature/wheat_beige3',
+]
+
 
 for _ in range(10):
     Scenery(
+        random.choice(BUSHES),
+        world,
+        direction=random.choice(list(Direction))
+    )
+    Standable(
         random.choice(PLANTS),
         world,
         direction=random.choice(list(Direction))
