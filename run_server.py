@@ -436,6 +436,7 @@ async def open_ws(request):
     c = Client(ws)
     loop.create_task(c.sender())
     await c.receiver()
+    return web.Response()
 
 
 app = web.Application()
