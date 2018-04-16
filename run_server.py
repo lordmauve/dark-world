@@ -242,6 +242,29 @@ class PC(Actor):
         }
 
 
+class Scenery(Actor):
+    next_uid = 0
+
+    def __init__(self, model, world, pos=None, direction=Direction.NORTH):
+        self.model = model
+        self.uid = self.next_uid
+        type(self).next_uid += 1
+        super().__init__(f'{model}-{self.uid}', world, pos, direction)
+
+    def to_json(self):
+        return {
+            'name': self.name,
+            'model': self.model,
+            'scale': 16.0,
+            'pos': self.pos,
+            'dir': self.direction.value
+        }
+
+
+for _ in range(10):
+    Scenery('nature/plant_bushDetailed', world, direction=random.choice(list(Direction)))
+
+
 class ActorSight:
     """Base class for subscribing to world events."""
     def __init__(self, actor):
@@ -380,14 +403,11 @@ class Client:
         objs = []
         for obj in world.query(center, self.actor.sight):
             objs.append(obj.to_json())
-
-        msg = {
+        self.write({
             'op': 'refresh',
             'pos': center,
             'objs': objs
-        }
-        print(msg)
-        self.write(msg)
+        })
 
     async def sender(self):
         while True:

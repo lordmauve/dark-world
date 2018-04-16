@@ -61,12 +61,21 @@ function load_skin(name) {
 }
 
 
-function load_model(name, skin, onload) {
-    model_loader.load('models/' + name + '.gltf', function ( gltf ) {
-        gltf.scene.traverse( function ( child ) {
+function load_model(obj, onload) {
+    let model_name = obj.model;
+    let skin_name = obj.skin || null;
+
+    let scale = obj.scale || 1.0;
+
+    model_loader.load('models/' + model_name + '.gltf', function ( gltf ) {
+        let model = gltf.scene;
+        if (model.children.length == 1) {
+            model = model.children[0];
+        }
+        model.traverse( function ( child ) {
             if ( child.isMesh ) {
-                if (skin) {
-                    const skin = load_skin('adventurer');
+                if (skin_name) {
+                    const skin = load_skin(skin_name);
                     child.material.map = skin;
                 }
                 child.castShadow = true;
@@ -74,7 +83,13 @@ function load_model(name, skin, onload) {
             }
         } );
 
-        let model = gltf.scene;
+        model.worldObj = true;
+        model.name = obj.name;
+        model.rotation.y = obj.dir * Math.PI / 2;
+        if (scale != 1.0) {
+            model.scale.set(scale, scale, scale);
+        }
+
         scene.add(model);
         if (onload) {
             onload(model);
@@ -358,11 +373,9 @@ function on_moved(msg) {
         );
     } else {
         let [x, z] = to_world(msg.from_pos);
-        load_model(obj.model, obj.skin, function(model) {
-            model.name = obj.name;
+        load_model(obj, function(model) {
             model.position.x = x;
             model.position.z = z;
-            model.rotation.y = obj.dir * Math.PI / 2;
             on_moved(msg);
             fadeIn(model, {duration: 200});
         });
@@ -379,12 +392,9 @@ function on_spawned(msg) {
 
 function spawn_obj(obj, effect) {
     let [x, z] = to_world(obj.pos);
-    load_model(obj.model, obj.skin, function(model) {
-        model.name = obj.name;
-        model.worldObj = true;
+    load_model(obj, function(model) {
         model.position.x = x;
         model.position.z = z;
-        model.rotation.y = obj.dir * Math.PI / 2;
         switch (effect) {
             case "fade":
                 fadeIn(model, {duration: 200});
