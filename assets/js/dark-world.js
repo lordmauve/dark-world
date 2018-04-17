@@ -1,7 +1,7 @@
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var container, stats, controls;
-var camera, scene, renderer, light, sun, ambient;
+var camera, scene, renderer, light, sun, ambient, anims;
 
 const tex_loader = new THREE.TextureLoader();
 const model_loader = new THREE.GLTFLoader();
@@ -71,6 +71,10 @@ function load_model(obj, onload) {
         let model = gltf.scene;
         if (model.children.length == 1) {
             model = model.children[0];
+        }
+        model.animations = {};
+        for (let a of gltf.animations) {
+            model.animations[a.name] = anims.clipAction(a, model);
         }
         model.traverse( function ( child ) {
             if ( child.isMesh ) {
@@ -167,6 +171,8 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x222222);
     scene.add(ground);
+
+    anims = new THREE.AnimationMixer(scene);
 
     sun = new THREE.DirectionalLight(0xffffff);
     sun.castShadow = true;
@@ -307,8 +313,12 @@ function onWindowResize() {
 }
 
 
+const clock = new THREE.Clock();
+
+
 function animate() {
     requestAnimationFrame( animate );
+    anims.update(clock.getDelta());
     renderer.render( scene, camera );
     stats.update();
 }
@@ -457,6 +467,21 @@ function on_spawned(msg) {
 function spawn_obj(obj, effect) {
     let [x, z] = to_world(obj.pos);
     load_model(obj, function(model) {
+        if (obj.model == 'advancedCharacter') {
+            load_model(
+                {
+                    name: 'weapon',
+                    model: 'weapons/sword',
+                    dir: 0,
+                    scale: 2
+                },
+                function (sword) {
+                    sword.position.set(0, 6, 4);
+                    sword.animations['animation_0'].play();
+                    model.add(sword);
+                }
+            );
+        }
         model.position.x = x;
         model.position.z = z;
         switch (effect) {
