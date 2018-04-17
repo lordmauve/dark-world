@@ -570,6 +570,13 @@ class Client:
             'objs': objs
         })
 
+    def handle_act(self):
+        # TODO: broadcast attack so that others can see it
+        self.write({
+            'op': 'attack',
+            'name': self.actor.name
+        })
+
     async def sender(self):
         while True:
             msg = await self.outqueue.get()

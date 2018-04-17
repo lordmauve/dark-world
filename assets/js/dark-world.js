@@ -72,10 +72,7 @@ function load_model(obj, onload) {
         if (model.children.length == 1) {
             model = model.children[0];
         }
-        model.animations = {};
-        for (let a of gltf.animations) {
-            model.animations[a.name] = anims.clipAction(a, model);
-        }
+        model.animations = gltf.animations;
         model.traverse( function ( child ) {
             if ( child.isMesh ) {
                 if (skin_name) {
@@ -173,6 +170,11 @@ function init() {
     scene.add(ground);
 
     anims = new THREE.AnimationMixer(scene);
+    anims.addEventListener('finished', function (e) {
+        if (e.action.hide_on_finish) {
+            e.action.getRoot().visible = false;
+        }
+    });
 
     sun = new THREE.DirectionalLight(0xffffff);
     sun.castShadow = true;
@@ -473,12 +475,24 @@ function spawn_obj(obj, effect) {
                     name: 'weapon',
                     model: 'weapons/sword',
                     dir: 0,
-                    scale: 2
                 },
                 function (sword) {
-                    sword.position.set(0, 6, 4);
-                    sword.animations['animation_0'].play();
-                    model.add(sword);
+                    var grp = new THREE.Group();
+                    grp.scale.set(1.5, 1.5, 1.5);
+                    grp.add(sword);
+                    sword.visible = false;
+                    sword.play = function () {
+                        sword.visible = true;
+                        let clip = sword.animations[0];
+                        let action = anims.clipAction(clip, sword);
+
+                        action.loop = THREE.LoopOnce;
+                        action.hide_on_finish = true;
+                        action.reset();
+                        action.play();
+                    };
+
+                    model.add(grp);
                 }
             );
         }
@@ -516,6 +530,17 @@ function on_killed(msg) {
     }
 }
 
+
+function on_attack(msg) {
+    const model = scene.getObjectByName(msg.name);
+    if (!model)
+        return;
+    const weapon = model.getObjectByName('weapon');
+    if (!weapon)
+        return;
+    weapon.play()
+}
+
 var ws;
 var player_name = window.localStorage.player_name;
 
@@ -549,7 +574,8 @@ HANDLERS = {
     'refresh': refresh,
     'moved': on_moved,
     'killed': on_killed,
-    'spawned': on_spawned
+    'spawned': on_spawned,
+    'attack': on_attack,
 };
 
 

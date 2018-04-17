@@ -47,9 +47,9 @@
         {
             "bufferView" : 3, 
             "componentType" : 5121, 
-            "count" : 21, 
+            "count" : 312, 
             "max" : [
-                13
+                221
             ], 
             "min" : [
                 0
@@ -59,32 +59,32 @@
         {
             "bufferView" : 4, 
             "componentType" : 5126, 
-            "count" : 14, 
+            "count" : 222, 
             "max" : [
                 0.029762808233499527, 
-                0.0, 
-                0.020929619669914246
+                0.005000000819563866, 
+                0.02092287503182888
             ], 
             "min" : [
-                -0.015259274281561375, 
+                -0.015259270556271076, 
                 0.0, 
-                -0.03144782781600952
+                -0.031024238094687462
             ], 
             "type" : "VEC3"
         }, 
         {
             "bufferView" : 5, 
             "componentType" : 5126, 
-            "count" : 14, 
+            "count" : 222, 
             "max" : [
-                0.0, 
                 1.0, 
-                -0.0
+                1.0, 
+                0.9999842643737793
             ], 
             "min" : [
-                0.0, 
-                0.9999999403953552, 
-                -0.0
+                -1.0, 
+                -1.0, 
+                -1.0
             ], 
             "type" : "VEC3"
         }, 
@@ -366,86 +366,86 @@
         }, 
         {
             "buffer" : 0, 
-            "byteLength" : 21, 
+            "byteLength" : 312, 
             "byteOffset" : 1932, 
             "target" : 34963
         }, 
         {
             "buffer" : 0, 
-            "byteLength" : 168, 
-            "byteOffset" : 1956, 
+            "byteLength" : 2664, 
+            "byteOffset" : 2244, 
             "target" : 34962
         }, 
         {
             "buffer" : 0, 
-            "byteLength" : 168, 
-            "byteOffset" : 2124, 
+            "byteLength" : 2664, 
+            "byteOffset" : 4908, 
             "target" : 34962
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 28, 
-            "byteOffset" : 2292
+            "byteOffset" : 7572
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 252, 
-            "byteOffset" : 2320
+            "byteOffset" : 7600
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 156, 
-            "byteOffset" : 2572
+            "byteOffset" : 7852
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 624, 
-            "byteOffset" : 2728
+            "byteOffset" : 8008
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 28, 
-            "byteOffset" : 3352
+            "byteOffset" : 8632
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 252, 
-            "byteOffset" : 3380
+            "byteOffset" : 8660
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 28, 
-            "byteOffset" : 3632
+            "byteOffset" : 8912
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 252, 
-            "byteOffset" : 3660
+            "byteOffset" : 8940
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 156, 
-            "byteOffset" : 3912
+            "byteOffset" : 9192
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 624, 
-            "byteOffset" : 4068
+            "byteOffset" : 9348
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 28, 
-            "byteOffset" : 4692
+            "byteOffset" : 9972
         }, 
         {
             "buffer" : 0, 
             "byteLength" : 252, 
-            "byteOffset" : 4720
+            "byteOffset" : 10000
         }
     ], 
     "buffers" : [
         {
-            "byteLength" : 4972, 
+            "byteLength" : 10252, 
             "uri" : "sword.bin"
         }
     ], 
