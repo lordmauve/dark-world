@@ -257,6 +257,7 @@ def create_dark_world():
             'ambient_intensity': 0.1
         }
     )
+    Enemy('enemies/bat', 10).spawn(w, (2, 0))
     Teleporter(target=light_world).spawn(w, (0, 0))
     return w
 
@@ -308,6 +309,24 @@ class PC(Actor):
             'name': self.name,
             'model': 'advancedCharacter',
             'skin': 'adventurer',
+            'pos': self.pos,
+            'dir': self.direction.value
+        }
+
+
+class Enemy(Actor):
+    next_uid = 0
+
+    def __init__(self, model, health):
+        self.model = model
+        self.uid = self.next_uid
+        type(self).next_uid += 1
+        super().__init__(f'{model}-{self.uid}')
+
+    def to_json(self):
+        return {
+            'name': self.name,
+            'model': self.model,
             'pos': self.pos,
             'dir': self.direction.value
         }
@@ -405,6 +424,7 @@ PLANTS = [
 ]
 
 Teleporter().spawn(light_world, (0, 0))
+Enemy('enemies/bat', 10).spawn(light_world, (1, 1))
 
 for _ in range(10):
     Scenery(

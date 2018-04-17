@@ -496,6 +496,19 @@ function spawn_obj(obj, effect) {
                 }
             );
         }
+
+        if (model.animations.length) {
+            let clip = model.animations[0];
+            let action = anims.clipAction(clip, model);
+            grp = new THREE.Group();
+            grp.name = model.name;
+            grp.worldObj = true;
+            model.name = '';
+            grp.add(model);
+            scene.add(grp);
+            model = grp;
+            action.play();
+        }
         model.position.x = x;
         model.position.z = z;
         switch (effect) {
