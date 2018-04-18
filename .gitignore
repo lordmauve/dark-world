@@ -2,3 +2,5 @@
 *.swp
 venv
 grabs
+source/*.zip
+source/*.blend1
