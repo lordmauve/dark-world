@@ -111,6 +111,10 @@ class World:
                 yield obj
                 obj = obj.below
 
+    def get(self, pos):
+        """Get the object at the given coordinates."""
+        return self.grid.get(pos)
+
     def spawn(self, obj, pos=None, effect=None):
         """Spawn an object into the grid."""
         if obj.name in self.by_name:
@@ -154,6 +158,9 @@ class World:
         """Move the object in the grid."""
         from_pos = obj.pos
         below = obj.below
+        if to_pos == from_pos:
+            self.get_subscribers(from_pos).move(obj, from_pos, from_pos)
+            return
         try:
             self._push(obj, to_pos)
         except Collision:
@@ -274,6 +281,13 @@ def create_dark_world():
     return w
 
 
+def adjacent(pos, direction):
+    """Get the adjacent map coordinates in a particular direction."""
+    dx, dy = DIRECTION_MAP[direction]
+    x, y = pos
+    return x + dx, y + dy
+
+
 class Actor:
     standable = False
     below = None
@@ -284,6 +298,14 @@ class Actor:
         self.world = None
         self.pos = (0, 0)
         self.direction = Direction.NORTH
+
+    def on_act(self, pc):
+        """Called when the object is acted on by the PC."""
+
+    def get_facing(self):
+        """Get the object this actor is facing, if any."""
+        facing_pos = adjacent(self.pos, self.direction)
+        return self.world.get(facing_pos)
 
     def spawn(self, world, pos=None, direction=Direction.NORTH, effect=None):
         self.world = world
@@ -300,9 +322,7 @@ class Actor:
     def move_step(self, direction):
         """Move by one step in the given direction."""
         self.direction = direction
-        dx, dy = DIRECTION_MAP[direction]
-        x, y = self.pos
-        to_pos = x + dx, y + dy
+        to_pos = adjacent(self.pos, self.direction)
         try:
             self.world.move(self, to_pos)
         except Collision:
@@ -337,6 +357,13 @@ class Enemy(Actor):
         self.uid = self.next_uid
         type(self).next_uid += 1
         super().__init__(f'{model}-{self.uid}')
+
+    def on_act(self, pc):
+        from_dir = Direction((pc.direction.value + 2) % 4)
+        print("Attacked from", from_dir)
+        self.direction = from_dir
+        self.move(self.pos)
+        pc.attack()
 
     def to_json(self):
         return {
@@ -624,7 +651,9 @@ class Client:
         })
 
     def handle_act(self):
-        self.actor.attack()
+        obj = self.actor.get_facing()
+        if obj:
+            obj.on_act(self.actor)
 
     async def sender(self):
         while True:

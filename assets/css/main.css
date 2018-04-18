@@ -21,11 +21,12 @@ h1 {
 
     text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
     font-weight: 900;
+    font-family: 'Cinzel Decorative', cursive;
 }
 
-
-h1, h2 {
-    font-family: 'Cinzel Decorative', cursive;
+h2 {
+    font-family: Times New Roman, serif;
+    font-weight: normal;
 }
 
 #messages {

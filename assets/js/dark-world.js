@@ -149,10 +149,10 @@ function init() {
     camera.lookAt(0, 0, 0);
 
     /* Allow controlling view with the mouse
-     */
     controls = new THREE.OrbitControls( camera );
     controls.target.set( 0, -2, -2 );
     controls.update();
+    */
 
     // envmap
     var path = 'textures/cube/skyboxsun25deg/';
@@ -505,6 +505,8 @@ function spawn_obj(obj, effect) {
             grp = new THREE.Group();
             grp.name = model.name;
             grp.worldObj = true;
+            grp.rotation.y = model.rotation.y;
+            model.rotation.y = 0;
             model.name = '';
             grp.add(model);
             scene.add(grp);
@@ -672,7 +674,6 @@ class Dialog {
         if (current_dialog) {
             current_dialog.close();
         }
-        controls.enabled = false;
         this.container.appendTo(document.body);
         this.populate(this.container)
         this.container.css({
@@ -686,7 +687,6 @@ class Dialog {
     close() {
         $(this.container).remove();
         current_dialog = null;
-        controls.enabled = true;
     }
 
     populate(container) {}
