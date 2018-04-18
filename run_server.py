@@ -14,7 +14,7 @@ import weakref  # noqa
 from enum import IntEnum  # noqa
 from collections import namedtuple  # noqa
 
-import aiohttp  # nowa
+import aiohttp  # noqa
 from aiohttp import web  # noqa
 # import asyncio_redis
 
@@ -173,6 +173,12 @@ class World:
             if obj.below:
                 obj.below.on_enter(obj)
 
+    def notify_update(self, obj, effect=None):
+        """Notify subscribers of an update to an object."""
+        if obj.world is not self:
+            return
+        self.get_subscribers(obj.pos).update(obj, effect)
+
     def kill(self, obj, effect=None):
         """Remove an object from the grid."""
         pos = obj.pos
@@ -214,6 +220,7 @@ class SubscriberSet(set):
 
     move = dispatcher('moved')
     spawn = dispatcher('spawned')
+    update = dispatcher('updated')
     kill = dispatcher('killed')
     del dispatcher
 
@@ -224,6 +231,9 @@ class Subscriber:
         self.rect = rect
 
     def moved(self, obj, from_pos, to_pos):
+        pass
+
+    def update(self, obj, effect):
         pass
 
     def spawned(self, obj, pos, effect):
@@ -237,6 +247,7 @@ light_world = World(
     size=10,
     metadata={
         'title': 'The Light World',
+        'title_color': 'black',
         'sun_color': 0xffffff,
         'sun_intensity': 1,
         'ambient_color': 0xffffff,
@@ -251,6 +262,7 @@ def create_dark_world():
         size=10,
         metadata={
             'title': 'The Dark World',
+            'title_color': 'white',
             'sun_color': 0x2222ff,
             'sun_intensity': 0.2,
             'ambient_color': 0x0000ff,
@@ -277,6 +289,9 @@ class Actor:
         self.world = world
         self.direction = direction
         self.world.spawn(self, pos=pos, effect=effect)
+
+    def attack(self):
+        self.world.notify_update(self, 'attack')
 
     def move(self, to_pos):
         """Move the actor in the world."""
@@ -446,19 +461,19 @@ class ActorSight:
     def __init__(self, actor):
         self.client = actor.client
         self.actor = actor
-        self.update()
+        self._update_rect()
         self.actor.world.subscribe(self)
 
     def destroy(self):
         self.actor.world.unsubscribe(self)
 
-    def update(self):
+    def _update_rect(self):
         self.rect = Rect.from_center(self.actor.pos, self.actor.sight)
 
     def moved(self, obj, from_pos, to_pos):
         if obj is self.actor:
             could_see = set(self.actor.world.query(from_pos, self.actor.sight))
-            self.update()
+            self._update_rect()
             now_see = set(self.actor.world.query(to_pos, self.actor.sight))
             for newobj in now_see - could_see:
                 self.spawned(newobj, newobj.pos, 'fade')
@@ -486,6 +501,13 @@ class ActorSight:
                     'effect': 'fade',
                     'track': obj is self.actor
                 })
+
+    def updated(self, obj, effect):
+        self.client.write({
+            'op': 'update',
+            'obj': obj.to_json(),
+            'effect': effect
+        })
 
     def spawned(self, obj, pos, effect):
         self.client.write({
@@ -578,6 +600,17 @@ class Client:
         self.actor.spawn(light_world)
         self.sight = ActorSight(self.actor)
 
+    def handle_say(self, msg):
+        actor = self.actor
+        for obj in actor.world.query(actor.pos, actor.sight):
+            # FIXME: should really be sight range of other actor
+            if isinstance(obj, PC):
+                obj.client.write({
+                    'op': 'say',
+                    'user': self.name,
+                    'msg': msg
+                })
+
     def handle_refresh(self):
         center = self.actor.pos
         objs = []
@@ -591,11 +624,7 @@ class Client:
         })
 
     def handle_act(self):
-        # TODO: broadcast attack so that others can see it
-        self.write({
-            'op': 'attack',
-            'name': self.actor.name
-        })
+        self.actor.attack()
 
     async def sender(self):
         while True:

@@ -393,6 +393,8 @@ function refresh(msg) {
         ambient.intensity = msg.world.ambient_intensity;
     if (msg.world.title)
         $('h1').text(msg.world.title);
+    if (msg.world.title_color)
+        $('h1').css({color: msg.world.title_color});
 }
 
 function on_moved(msg) {
@@ -544,14 +546,16 @@ function on_killed(msg) {
 }
 
 
-function on_attack(msg) {
-    const model = scene.getObjectByName(msg.name);
-    if (!model)
-        return;
-    const weapon = model.getObjectByName('weapon');
-    if (!weapon)
-        return;
-    weapon.play()
+function on_update(msg) {
+    if (msg.effect == 'attack') {
+        const model = scene.getObjectByName(msg.obj.name);
+        if (!model)
+            return;
+        const weapon = model.getObjectByName('weapon');
+        if (!weapon)
+            return;
+        weapon.play()
+    }
 }
 
 var ws;
@@ -571,6 +575,12 @@ HANDLERS = {
     'announce': function (params) {
         log(params.msg);
     },
+    'say': function (params) {
+        log(
+            '<' + params.user + '> ' + params.msg,
+            'chat'
+        );
+    },
     'authfail': function (params) {
         log(params.msg, 'error');
         player_name = null;
@@ -588,7 +598,7 @@ HANDLERS = {
     'moved': on_moved,
     'killed': on_killed,
     'spawned': on_spawned,
-    'attack': on_attack,
+    'update': on_update,
 };
 
 
@@ -634,6 +644,12 @@ const KEYMAP = {
 function initInput() {
    $(window).bind('keydown', function(event) {
         var keyCode = event.which;
+        if (current_dialog) {
+            if (keyCode == 27) {
+                current_dialog.close();
+            }
+            return;
+        }
         op = KEYMAP[keyCode];
         if (op) {
             send_msg({'op': op});
@@ -641,7 +657,77 @@ function initInput() {
     });
 }
 
-init();
-initInput();
-connect();
-animate();
+var current_dialog = null;
+
+
+class Dialog {
+    constructor(type) {
+        this.type = type;
+        this.show();
+    }
+
+    show() {
+        this.container = $('<div id="dialog">');
+
+        if (current_dialog) {
+            current_dialog.close();
+        }
+        controls.enabled = false;
+        this.container.appendTo(document.body);
+        this.populate(this.container)
+        this.container.css({
+            top: ($(document.body).height() - this.container.height()) / 2 + 'px'
+        });
+
+
+        current_dialog = this;
+    }
+
+    close() {
+        $(this.container).remove();
+        current_dialog = null;
+        controls.enabled = true;
+    }
+
+    populate(container) {}
+}
+
+
+class SpeakDialog extends Dialog {
+    constructor() {
+        super('speak');
+    }
+
+    populate(div) {
+        $('<h2>').text('Speak').appendTo(div);
+        var text = $('<input>').appendTo(div);
+        text.focus();
+        var dlg = this;
+        text.bind('keydown', function (event) {
+            if (event.keyCode == 13) {
+                var msg = text.val();
+                dlg.close();
+                send_msg({
+                    'op': 'say',
+                    'msg': msg
+                });
+            }
+        });
+    }
+};
+
+
+$(function () {
+    $('#speak').bind('click', function () {
+        if (current_dialog && current_dialog.type == 'speak') {
+            current_dialog.close();
+        } else {
+            new SpeakDialog();
+        }
+    });
+
+    init();
+    initInput();
+    connect();
+    animate();
+});

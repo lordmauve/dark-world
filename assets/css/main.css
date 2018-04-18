@@ -1,6 +1,10 @@
+@import url('https://fonts.googleapis.com/css?family=Cinzel+Decorative');
+
 body {
     font-family: Monospace;
     background-color: #000;
+    font-size: 150%;
+    line-height: 1.5em;
     color: #fff;
     margin: 0px;
     overflow: hidden;
@@ -8,26 +12,83 @@ body {
 
 h1 {
     margin: 0;
-    color: #fff;
+    color: black;
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 30px;
+    right: 20px;
     z-index: 100;
     display:block;
+
     text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+    font-weight: 900;
+}
+
+
+h1, h2 {
+    font-family: 'Cinzel Decorative', cursive;
 }
 
 #messages {
     position: absolute;
     bottom: 5px;
-    left: 5px;
+    left: 20px;
     z-index: 500;
+
+    margin-left: 0;
+    padding-left: 0;
+}
+
+#messages li::before {
+    content: "\2023";
+    margin-right: 0.5em;
+}
+
+#messages li {
+    text-shadow: 1px 1px 0 black;
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
 }
 
 #messages .error {
     color: #c00;
 }
 
-#messages .say {
-    color: #0a0;
+#messages .chat {
+    color: #ca0;
+}
+
+input,
+button {
+    font-size: 80%;
+}
+
+#speak {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1000;
+}
+
+#dialog {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 50%;
+    height: auto;
+
+    background-color: white;
+    color: black;
+    padding: 20px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+#dialog input {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+#dialog h2 {
+    margin-top: 0;
+    font-size: 120%;
 }
