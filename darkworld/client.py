@@ -181,8 +181,10 @@ class Client:
 
     def handle_act(self):
         obj = self.actor.get_facing()
-        if obj:
+        if obj and not obj.standable:
             obj.on_act(self.actor)
+        else:
+            self.actor.attack()
 
     async def sender(self):
         while True:

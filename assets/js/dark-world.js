@@ -1,7 +1,7 @@
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var container, stats, controls;
-var camera, scene, renderer, light, sun, ambient, anims;
+var camera, scene, renderer, light, sun, ambient, anims, slash;
 
 const tex_loader = new THREE.TextureLoader();
 const model_loader = new THREE.GLTFLoader();
@@ -109,7 +109,14 @@ const SLAB = new THREE.MeshBasicMaterial({
 
 const TELEPORT = new THREE.MeshBasicMaterial({
     color: 0x1188DD,
-    side: THREE.FrontSize,
+    side: THREE.FrontSide,
+    opacity: 0.5,
+    transparent: true
+});
+
+const EFFECT = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    side: THREE.DoubleSide,
     opacity: 0.5,
     transparent: true
 });
@@ -120,6 +127,15 @@ const WORLD = new THREE.MeshPhongMaterial({
     shininess: 30,
     side: THREE.DoubleSide,
     map: terrain
+});
+
+model_loader.load('models/slash.gltf', function (gltf) {
+    slash = gltf.scene.children[0];
+    gltf.scene.traverse((child) => {
+        if (child.material) {
+            child.material = EFFECT;
+        }
+    });
 });
 
 var geometry = new THREE.PlaneGeometry(10240, 10240);
@@ -149,10 +165,10 @@ function init() {
     camera.lookAt(0, 0, 0);
 
     /* Allow controlling view with the mouse
+    */
     controls = new THREE.OrbitControls( camera );
     controls.target.set( 0, -2, -2 );
     controls.update();
-    */
 
     // envmap
     var path = 'textures/cube/skyboxsun25deg/';
@@ -556,8 +572,41 @@ function on_update(msg) {
         const weapon = model.getObjectByName('weapon');
         if (!weapon)
             return;
-        weapon.play()
+        weapon.play();
+        setTimeout(function () {fire_slash(model, -50);}, 300);
     }
+}
+
+
+function fire_slash(model, roll) {
+    const s = slash.clone();
+    //s.rotation.copy(model.rotation);
+    s.rotation.y = model.rotation.y;
+    s.rotation.z = (roll || 0) * (Math.PI / 180.0);
+    s.position.set(model.position.x, 10, model.position.z);
+    s.rotation.order = 'YZX';
+    s.material = slash.material.clone();
+    let start = new THREE.Vector3(0, 10, 3);
+    start = start
+        .applyQuaternion(model.quaternion)
+        .add(model.position);
+    let dest = new THREE.Vector3(0, 0, 20);
+    dest = dest
+        .applyQuaternion(model.quaternion)
+        .add(model.position);
+    s.name = '';
+    animateProps(s.position, {
+        x: dest.x,
+        y: dest.y,
+        z: dest.z
+    }, {duration: 100});
+    animateProps(s.scale, {
+        x: 4,
+        y: 4,
+        z: 4
+    }, {duration: 100});
+    fadeOut(s, {duration: 100});
+    scene.add(s);
 }
 
 var ws;
