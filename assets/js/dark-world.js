@@ -590,7 +590,7 @@ function fire_slash(model, roll) {
     start = start
         .applyQuaternion(model.quaternion)
         .add(model.position);
-    let dest = new THREE.Vector3(0, 0, 20);
+    let dest = new THREE.Vector3(0, 15, 20);
     dest = dest
         .applyQuaternion(model.quaternion)
         .add(model.position);
@@ -601,9 +601,9 @@ function fire_slash(model, roll) {
         z: dest.z
     }, {duration: 100});
     animateProps(s.scale, {
-        x: 4,
-        y: 4,
-        z: 4
+        x: 3,
+        y: 3,
+        z: 3
     }, {duration: 100});
     fadeOut(s, {duration: 100});
     scene.add(s);
