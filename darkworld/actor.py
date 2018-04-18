@@ -32,6 +32,9 @@ class Actor:
     def attack(self):
         self.world.notify_update(self, 'attack')
 
+    def take_damage(self, dmg=1):
+        self.world.notify_update(self, 'damage')
+
     def move(self, to_pos):
         """Move the actor in the world."""
         self.world.move(self, to_pos)
@@ -81,6 +84,7 @@ class Enemy(Actor):
         self.direction = from_dir
         self.move(self.pos)
         pc.attack()
+        self.take_damage()
 
     def to_json(self):
         return {

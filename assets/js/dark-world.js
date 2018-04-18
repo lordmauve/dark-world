@@ -1,7 +1,7 @@
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var container, stats, controls;
-var camera, scene, renderer, light, sun, ambient, anims, slash;
+var camera, scene, renderer, light, sun, ambient, anims, slash, proton;
 
 const tex_loader = new THREE.TextureLoader();
 const model_loader = new THREE.GLTFLoader();
@@ -105,6 +105,11 @@ const SLAB = new THREE.MeshBasicMaterial({
     side: THREE.DoubleSide,
     opacity: 0.1,
     transparent: true
+});
+const BLOOD = new THREE.SpriteMaterial({
+    map: new THREE.TextureLoader().load("textures/droplet.png"),
+    color: 0xff0000,
+    lights: true
 });
 
 const TELEPORT = new THREE.MeshBasicMaterial({
@@ -229,6 +234,9 @@ function init() {
     stats = new Stats();
     container.appendChild( stats.dom );
 
+    proton = new Proton();
+    proton.addRender(new Proton.SpriteRender(scene));
+
     /* Animate the head
     var t = 0;
     setInterval(function () {
@@ -336,6 +344,7 @@ const clock = new THREE.Clock();
 
 function animate() {
     requestAnimationFrame( animate );
+    proton.update();
     anims.update(clock.getDelta());
     renderer.render( scene, camera );
     stats.update();
@@ -565,15 +574,18 @@ function on_killed(msg) {
 
 
 function on_update(msg) {
+    const model = scene.getObjectByName(msg.obj.name);
+    if (!model)
+        return;
+
     if (msg.effect == 'attack') {
-        const model = scene.getObjectByName(msg.obj.name);
-        if (!model)
-            return;
         const weapon = model.getObjectByName('weapon');
         if (!weapon)
             return;
         weapon.play();
         setTimeout(function () {fire_slash(model, -50);}, 300);
+    } else if (msg.effect == 'damage') {
+        fire_particles(model, BLOOD);
     }
 }
 
@@ -607,6 +619,50 @@ function fire_slash(model, roll) {
     }, {duration: 100});
     fadeOut(s, {duration: 100});
     scene.add(s);
+}
+
+function fire_particles(model, material) {
+    var emitter = new Proton.Emitter();
+
+    material = material.clone();
+
+    // three.js sprites don't support lighting currently
+    // Fake it by multiplying the colour by the sun's colour
+    material.color = material.color.multiply(sun.color);
+
+    //setRate
+    emitter.rate = new Proton.Rate(new Proton.Span(4, 16), new Proton.Span(.01));
+
+    //addInitialize
+    //emitter.addInitialize(new Proton.Position(new Proton.PointZone(0, 0)));
+    emitter.addInitialize(new Proton.Mass(1));
+    emitter.addInitialize(new Proton.Radius(0.1, 1));
+    emitter.addInitialize(new Proton.Life(0.3));
+    emitter.addInitialize(new Proton.V(45, new Proton.Vector3D(0, 1, 0), 180));
+    emitter.addInitialize(new Proton.Body(new THREE.Sprite(material)));
+
+    //addBehaviour
+    //emitter.addBehaviour(new Proton.Alpha(1, 0));
+    //emitter.addBehaviour(new Proton.Scale(.1, 1.3));
+    //emitter.addBehaviour(new Proton.Rotate("random", "random"));
+    //emitter.addBehaviour(new Proton.Scale(1, .1));
+    emitter.addBehaviour(new Proton.G(3));
+
+    /*
+    let color1 = new THREE.Color();
+    let color2 = new THREE.Color();
+    let colorBehaviour = new Proton.Color('#ff0000', '#000000');
+    emitter.addBehaviour(colorBehaviour);
+    */
+    emitter.p.x = model.position.x;
+    emitter.p.y = 10;
+    emitter.p.z = model.position.z;
+
+    //add emitter
+    proton.addEmitter(emitter);
+
+    emitter.emit('once');
+    setTimeout(() => proton.removeEmitter(emitter), 500);
 }
 
 var ws;
