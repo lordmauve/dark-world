@@ -32,8 +32,8 @@ class Actor:
     def attack(self):
         self.world.notify_update(self, 'attack')
 
-    def take_damage(self, dmg=1):
-        self.world.notify_update(self, 'damage')
+    def take_damage(self, crit=False):
+        self.world.notify_update(self, 'damage-crit' if crit else 'damage')
 
     def move(self, to_pos):
         """Move the actor in the world."""
@@ -73,6 +73,7 @@ class Enemy(Actor):
     next_uid = 0
 
     def __init__(self, model, health):
+        self.health = health
         self.model = model
         self.uid = self.next_uid
         type(self).next_uid += 1
@@ -80,18 +81,24 @@ class Enemy(Actor):
 
     def on_act(self, pc):
         from_dir = Direction((pc.direction.value + 2) % 4)
-        print("Attacked from", from_dir)
         self.direction = from_dir
         self.move(self.pos)
         pc.attack()
-        self.take_damage()
+        dmg = 1  # TODO: Calculate damage to apply
+        self.health -= dmg
+        if self.health <= 0:
+            self.take_damage(crit=True)
+            self.kill()
+        else:
+            self.take_damage()
 
     def to_json(self):
         return {
             'name': self.name,
             'model': self.model,
             'pos': self.pos,
-            'dir': self.direction.value
+            'dir': self.direction.value,
+            'title': f'{self.health} health',
         }
 
 
@@ -154,9 +161,5 @@ class Teleporter(Standable):
                 obj.spawn(target, pos=(0, 0), effect='teleport')
             except Collision:
                 obj.spawn(target, effect='teleport')
-            print(f'{self.name} moved to {target}')
         loop = asyncio.get_event_loop()
         loop.call_later(0.5, respawn)
-
-    def on_exit(self, obj):
-        print(f'{self.name} left by {obj.name}')

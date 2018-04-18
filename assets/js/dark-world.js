@@ -586,6 +586,9 @@ function on_update(msg) {
         setTimeout(function () {fire_slash(model, -50);}, 300);
     } else if (msg.effect == 'damage') {
         fire_particles(model, BLOOD);
+    } else if (msg.effect == 'damage-crit') {
+        fire_particles(model, BLOOD);
+        fire_particles(model, BLOOD);
     }
 }
 
