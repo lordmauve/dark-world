@@ -98,7 +98,7 @@ function load_model(obj, onload) {
     });
 }
 
-const SHADOW_SIZE = 100;
+const SHADOW_SIZE = 150;
 const TILE_SIZE = 16;
 const SLAB = new THREE.MeshBasicMaterial({
     color: 0x111111,
@@ -200,8 +200,8 @@ function init() {
     sun = new THREE.DirectionalLight(0xffffff);
     sun.castShadow = true;
     sun.position.set( -200, 200, -100 );
-    sun.shadow.mapSize.width = 1024;  // default
-    sun.shadow.mapSize.height = 1024; // default
+    sun.shadow.mapSize.width = 1024;
+    sun.shadow.mapSize.height = 1024;
     sun.shadow.camera.left = -SHADOW_SIZE;
     sun.shadow.camera.right = SHADOW_SIZE;
     sun.shadow.camera.bottom = -SHADOW_SIZE;
