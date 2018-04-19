@@ -150,7 +150,7 @@ def create_light_world():
             'ambient_intensity': 0.2
         }
     )
-    Teleporter().spawn(light_world, (0, 0))
+    Teleporter().spawn(light_world, (2, -13))
 
     # Insert a bat for testing
     # Enemy('enemies/bat', 10).spawn(light_world, (1, 1))

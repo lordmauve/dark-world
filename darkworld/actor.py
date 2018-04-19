@@ -155,6 +155,8 @@ class Teleporter(Standable):
         obj.world = target
 
         def respawn():
+            # FIXME: we need to identify spawn point before we restart sight
+            obj.pos = (0, 0)
             client.sight.restart()
             obj.client.handle_refresh()
             try:
