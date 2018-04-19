@@ -15,7 +15,7 @@ class World:
     We allow subscribers to subscribe to see changes in the world.
 
     """
-    def __init__(self, size, metadata=None):
+    def __init__(self, size, heightmap=None, metadata=None):
         self.grid = {}
         self.by_name = {}
         self.metadata = metadata or {}
@@ -23,6 +23,23 @@ class World:
 
         # Really defines the spawn area
         self.size = size
+
+        self.heightmap = heightmap.resize(
+            (2 * size + 1,) * 2,
+        ) if heightmap else None
+
+    def in_bounds(self, pos):
+        x, y = pos
+        size = self.size
+        if not (
+                -size <= x <= size and
+                -size <= y <= size):
+            return False
+        if self.heightmap:
+            p = (x + size, y + size)
+            h = self.heightmap.getpixel(p)
+            return h > 45
+        return True
 
     def to_json(self):
         return self.metadata
@@ -32,7 +49,8 @@ class World:
         while True:
             x = random.randint(-self.size, self.size)
             y = random.randint(-self.size, self.size)
-            if (x, y) not in self.grid:
+            pos = x, y
+            if pos not in self.grid and self.in_bounds(pos):
                 return x, y
 
     def query(self, pos, radius=3):
@@ -73,6 +91,8 @@ class World:
 
     def _push(self, obj, pos):
         """Push an actor onto the actor stack at pos."""
+        if not self.in_bounds(pos):
+            raise Collision(f'{pos} is not in bounds')
         if pos not in self.grid:
             self.grid[pos] = obj
             obj.below = None

@@ -2,6 +2,8 @@ import random
 from contextlib import contextmanager
 from timeit import default_timer
 
+from PIL import Image
+
 from .coords import Direction, adjacent
 from .world import World
 from .actor import Enemy, Teleporter, Scenery, Standable
@@ -141,7 +143,7 @@ PLANTS = [
 
 def create_light_world():
     light_world = World(
-        size=20,
+        size=320,
         metadata={
             'title': 'The Light World',
             'title_color': 'black',
@@ -149,7 +151,8 @@ def create_light_world():
             'sun_intensity': 1,
             'ambient_color': 0xffffff,
             'ambient_intensity': 0.2
-        }
+        },
+        heightmap=Image.open('assets/heightmap.png')
     )
     Teleporter().spawn(light_world, (2, -13))
 
