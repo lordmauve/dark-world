@@ -119,16 +119,20 @@ class Client:
             self.actor.kill(effect='disconnect')
 
     def handle_west(self):
-        self.actor.move_step(Direction.WEST)
+        if self.actor.alive:
+            self.actor.move_step(Direction.WEST)
 
     def handle_east(self):
-        self.actor.move_step(Direction.EAST)
+        if self.actor.alive:
+            self.actor.move_step(Direction.EAST)
 
     def handle_north(self):
-        self.actor.move_step(Direction.NORTH)
+        if self.actor.alive:
+            self.actor.move_step(Direction.NORTH)
 
     def handle_south(self):
-        self.actor.move_step(Direction.SOUTH)
+        if self.actor.alive:
+            self.actor.move_step(Direction.SOUTH)
 
     def handle_auth(self, name):
         # TODO: validate name
@@ -153,9 +157,18 @@ class Client:
         self.write({'op': 'authok'})
         self.respawn()
 
-    def respawn(self):
+    def text_message(self, msg):
+        """Send a text message to the user."""
+        self.write({
+            'op': 'announce',
+            'msg': msg
+        })
+
+    def respawn(self, msg=None):
         self.spawn_actor()
         self.handle_refresh()
+        if msg:
+            self.text_message(msg)
 
     def spawn_actor(self):
         self.actor = PC(self)
@@ -197,6 +210,8 @@ class Client:
         })
 
     def handle_act(self):
+        if not self.actor.alive:
+            return
         obj = self.actor.get_facing()
         if obj and not obj.standable:
             obj.on_act(self.actor)

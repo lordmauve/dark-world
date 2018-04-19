@@ -81,8 +81,9 @@ class PC(Mob):
         self.sight = 8
 
     def on_death(self):
+        self.client.text_message('You are dead. Game over.')
         loop = asyncio.get_event_loop()
-        loop.call_later(2.0, self.client.respawn)
+        loop.call_later(5.0, self.client.respawn, 'Welcome back to the land of the living.')
 
     def to_json(self):
         return {
