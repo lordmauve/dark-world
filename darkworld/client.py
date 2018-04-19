@@ -25,12 +25,14 @@ class ClientSight:
         return f'<ClientSight for {self.client.name} in {self.world}>'
 
     def stop(self):
-        self.world.unsubscribe(self)
+        if self.world:
+            self.world.unsubscribe(self)
         self.world = None
 
     def restart(self):
-        self._update_rect()
+        self.stop()
         self.world = self.actor.world
+        self._update_rect()
         self.world.subscribe(self)
 
     def _update_rect(self):
@@ -242,6 +244,7 @@ class Client:
                         'op': 'error',
                         'msg': 'You are not authenticated'
                     })
+                    continue
                 try:
                     handler = getattr(self, f'handle_{op}')
                     if inspect.iscoroutinefunction(handler):
