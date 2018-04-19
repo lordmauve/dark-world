@@ -3,9 +3,13 @@ import traceback
 import json
 import asyncio
 
-from .coords import Rect, Direction
+from .coords import Rect, Direction, DIRECTION_MAP
+from .world import Collision
 from .world_gen import light_world
 from .actor import PC
+
+
+loop = asyncio.get_event_loop()
 
 
 class ClientSight:
@@ -147,13 +151,26 @@ class Client:
             'msg': f"{name} connected"
         })
         self.write({'op': 'authok'})
+        self.respawn()
 
+    def respawn(self):
         self.spawn_actor()
         self.handle_refresh()
 
     def spawn_actor(self):
         self.actor = PC(self)
-        self.actor.spawn(light_world)
+
+        # FIXME: need better way of finding good spawn points
+        dirs = list(DIRECTION_MAP.values())
+        for d in dirs:
+            try:
+                self.actor.spawn(light_world, pos=d)
+            except Collision:
+                continue
+            else:
+                break
+        else:
+            self.actor.spawn(light_world)
         self.sight = ClientSight(self.actor)
 
     def handle_say(self, msg):

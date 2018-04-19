@@ -1,4 +1,5 @@
 """Coordinates and directions."""
+import random
 from enum import IntEnum
 from collections import namedtuple
 
@@ -48,3 +49,18 @@ def adjacent(pos, direction):
     dx, dy = DIRECTION_MAP[direction]
     x, y = pos
     return x + dx, y + dy
+
+
+ALL_DIRECTIONS = list(Direction)
+
+
+def random_dir():
+    """Return a random direction."""
+    return random.choice(ALL_DIRECTIONS)
+
+
+def manhattan_distance(p1, p2):
+    """Calculate the Manhattan distance between two points."""
+    p1x, p1y = p1
+    p2x, p2y = p2
+    return abs(p1x - p2x) + abs(p1y - p2y)

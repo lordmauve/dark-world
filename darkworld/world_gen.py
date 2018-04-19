@@ -4,16 +4,10 @@ from timeit import default_timer
 
 from PIL import Image
 
-from .coords import Direction, adjacent
+from .coords import Direction, adjacent, random_dir
 from .world import World
 from .actor import Enemy, Teleporter, Scenery, Standable
-
-ALL_DIRECTIONS = list(Direction)
-
-
-def random_dir():
-    """Return a random direction."""
-    return random.choice(ALL_DIRECTIONS)
+from .ai import EnemyAI
 
 
 def erode(grid):
@@ -98,10 +92,15 @@ def create_dark_world():
 
     enemy_pos = random.sample(list(logical_grid), len(logical_grid) // 20)
 
+    enemies = []
     for pos in enemy_pos:
         logical_grid.discard(pos)
-        Enemy('enemies/bat', 10).spawn(w, pos)
+        e = Enemy('enemies/bat', 10)
+        e.spawn(w, pos)
+        enemies.append(e)
 
+    w.ai = EnemyAI(enemies)
+    w.subscribe(w.ai)
     return w
 
 

@@ -159,6 +159,9 @@ class World:
                 found.add(s)
         return found
 
+    def __del__(self):
+        print(f"destroying {self.metadata['title']}")
+
 
 class SubscriberSet(set):
     """A set of subscribers.
@@ -191,7 +194,7 @@ class Subscriber:
     def moved(self, obj, from_pos, to_pos):
         pass
 
-    def update(self, obj, effect):
+    def updated(self, obj, effect):
         pass
 
     def spawned(self, obj, pos, effect):

@@ -15,6 +15,7 @@ class Actor:
         self.world = None
         self.pos = (0, 0)
         self.direction = Direction.NORTH
+        self.alive = False
 
     def on_act(self, pc):
         """Called when the object is acted on by the PC."""
@@ -28,6 +29,7 @@ class Actor:
         self.world = world
         self.direction = direction
         self.world.spawn(self, pos=pos, effect=effect)
+        self.alive = True
 
     def attack(self):
         self.world.notify_update(self, 'attack')
@@ -51,13 +53,36 @@ class Actor:
     def kill(self, effect=None):
         """Remove the actor from the world."""
         self.world.kill(self, effect)
+        self.alive = False
 
 
-class PC(Actor):
+class Mob(Actor):
+    health = max_health = 10
+
+    def hit(self, dmg):
+        self.health -= dmg
+        if self.health <= 0:
+            self.take_damage(crit=True)
+            self.kill()
+            self.on_death()
+        else:
+            self.take_damage()
+
+    def on_death(self):
+        pass
+
+
+class PC(Mob):
+    health = max_health = 30
+
     def __init__(self, client):
         super().__init__(f'Player-{client.name}')
         self.client = client
         self.sight = 8
+
+    def on_death(self):
+        loop = asyncio.get_event_loop()
+        loop.call_later(2.0, self.client.respawn)
 
     def to_json(self):
         return {
@@ -69,7 +94,7 @@ class PC(Actor):
         }
 
 
-class Enemy(Actor):
+class Enemy(Mob):
     next_uid = 0
 
     def __init__(self, model, health):
@@ -85,12 +110,7 @@ class Enemy(Actor):
         self.move(self.pos)
         pc.attack()
         dmg = 1  # TODO: Calculate damage to apply
-        self.health -= dmg
-        if self.health <= 0:
-            self.take_damage(crit=True)
-            self.kill()
-        else:
-            self.take_damage()
+        self.hit(dmg)
 
     def to_json(self):
         return {
