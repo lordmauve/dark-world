@@ -2,6 +2,7 @@ import inspect
 import traceback
 import json
 import asyncio
+import weakref
 
 from .coords import Rect, Direction, DIRECTION_MAP
 from .world import Collision
@@ -17,15 +18,20 @@ class ClientSight:
     def __init__(self, actor):
         self.client = actor.client
         self.actor = actor
-        self._update_rect()
-        self.actor.world.subscribe(self)
+        self.world = None
+        self.restart()
+
+    def __repr__(self):
+        return f'<ClientSight for {self.client.name} in {self.world}>'
 
     def stop(self):
-        self.actor.world.unsubscribe(self)
+        self.world.unsubscribe(self)
+        self.world = None
 
     def restart(self):
         self._update_rect()
-        self.actor.world.subscribe(self)
+        self.world = self.actor.world
+        self.world.subscribe(self)
 
     def _update_rect(self):
         self.rect = Rect.from_center(self.actor.pos, self.actor.sight)
@@ -87,7 +93,7 @@ class ClientSight:
 
 
 class Client:
-    clients = {}
+    clients = weakref.WeakValueDictionary()
 
     @classmethod
     def broadcast(cls, msg):

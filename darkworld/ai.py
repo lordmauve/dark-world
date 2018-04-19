@@ -1,6 +1,5 @@
 import asyncio
 import random
-import time
 from collections import defaultdict
 
 from .coords import random_dir, Direction, adjacent, manhattan_distance
@@ -61,7 +60,6 @@ class EnemyAI:
             self.enemies[e] = None
 
     def think(self):
-        print("thinking...", time.time())
         if self.targets and self.enemies:
             loop.call_later(0.5, self.think)
 
@@ -72,4 +70,3 @@ class EnemyAI:
             elif random.random() < 0.2:
                 # random walk
                 e.move_step(random_dir())
-

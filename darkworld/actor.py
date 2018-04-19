@@ -1,5 +1,6 @@
 """Actors are objects that can exist in the world."""
 import asyncio
+import weakref
 
 from .coords import Direction, adjacent
 from .world import Collision
@@ -12,10 +13,27 @@ class Actor:
     def __init__(self, name):
         self.name = name
         self.below = None
-        self.world = None
+        self._world = None
         self.pos = (0, 0)
         self.direction = Direction.NORTH
         self.alive = False
+
+    @property
+    def world(self):
+        """Return the world."""
+        return self._world and self._world()
+
+    @world.setter
+    def world(self, w):
+        """Set the world.
+
+        We hold only weak references to the world in most Actor objects. Only
+        PC objects hold strong references to the world. This allows the world
+        to be deallocated as soon as all the PCs leave, which is valuable for
+        memory usage.
+
+        """
+        self._world = weakref.ref(w)
 
     def on_act(self, pc):
         """Called when the object is acted on by the PC."""
@@ -43,6 +61,8 @@ class Actor:
 
     def move_step(self, direction):
         """Move by one step in the given direction."""
+        if not self.world:
+            return
         self.direction = direction
         to_pos = adjacent(self.pos, self.direction)
         try:
@@ -80,10 +100,22 @@ class PC(Mob):
         self.client = client
         self.sight = 8
 
+    @property
+    def world(self):
+        return self._world
+
+    @world.setter
+    def world(self, w):
+        self._world = w
+
     def on_death(self):
         self.client.text_message('You are dead. Game over.')
         loop = asyncio.get_event_loop()
-        loop.call_later(5.0, self.client.respawn, 'Welcome back to the land of the living.')
+        loop.call_later(
+            5.0,
+            self.client.respawn,
+            'Welcome back to the land of the living.'
+        )
 
     def to_json(self):
         return {

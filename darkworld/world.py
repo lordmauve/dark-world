@@ -26,6 +26,9 @@ class World:
 
         self.accessible_area = accessible_area
 
+    def __repr__(self):
+        return f"<World {self.metadata['title']}>"
+
     def in_bounds(self, pos):
         if self.accessible_area:
             return pos in self.accessible_area
@@ -159,9 +162,6 @@ class World:
                 found.add(s)
         return found
 
-    def __del__(self):
-        print(f"destroying {self.metadata['title']}")
-
 
 class SubscriberSet(set):
     """A set of subscribers.
@@ -202,5 +202,3 @@ class Subscriber:
 
     def killed(self, obj, pos, effect):
         pass
-
-
