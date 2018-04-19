@@ -408,6 +408,18 @@ function refresh(msg) {
     for (let obj of msg.objs) {
         spawn_obj(obj);
     }
+    if (msg.world.world_tex) {
+        const terrain = tex_loader.load(
+            'textures/' + msg.world.world_tex + '.png'
+        );
+        terrain.flip_y = false;
+        const mat = WORLD.clone();
+        mat.map = terrain;
+        ground.material = mat;
+    } else {
+        ground.material = WORLD;
+    }
+
     if (msg.world.sun_color)
         sun.color.set(msg.world.sun_color);
     if (msg.world.sun_intensity)

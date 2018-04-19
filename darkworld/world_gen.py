@@ -55,7 +55,8 @@ def create_dark_world():
             'sun_color': 0x2222ff,
             'sun_intensity': 0.2,
             'ambient_color': 0x0000ff,
-            'ambient_intensity': 0.1
+            'ambient_intensity': 0.1,
+            'world_tex': 'dark_terrain',
         }
     )
 
