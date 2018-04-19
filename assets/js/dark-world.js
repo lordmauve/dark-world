@@ -289,10 +289,10 @@ function fadeOut(model, params) {
 }
 
 function wrapModel(model) {
-    scene.remove(model);
     var wrapper = new THREE.Scene();
+    wrapper.position.copy(model.position);
+    scene.remove(model);
     wrapper.add(model)
-    wrapper.position = model.position;
     model.position.set(0, 0, 0);
     scene.add(wrapper);
     return wrapper;
@@ -301,12 +301,11 @@ function wrapModel(model) {
 function unwrapModel(model) {
     const wrapper = model.parent;
     scene.remove(wrapper);
-    model.position = wrapper.position;
+    model.position.copy(wrapper.position);
     scene.add(model);
 }
 
 function teleportOut(model) {
-    scene.remove(model);
     const wrapper = wrapModel(model);
     wrapper.overrideMaterial = TELEPORT;
     model.traverse(function (c) { c.castShadow = false});
@@ -567,6 +566,7 @@ function spawn_obj(obj, effect) {
 function on_killed(msg) {
     var model = scene.getObjectByName(msg.obj.name);
     var effect = msg.effect || 'none';
+    model.name = '';
     if (model) {
         switch (effect) {
             case "fade":

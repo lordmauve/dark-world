@@ -1,12 +1,13 @@
 import random
 from contextlib import contextmanager
 from timeit import default_timer
+from itertools import product
 
 from PIL import Image
 
 from .coords import Direction, adjacent, random_dir
 from .world import World
-from .actor import Enemy, Teleporter, Scenery, Standable
+from .actor import Enemy, Teleporter, Scenery, Standable, Trigger
 from .ai import EnemyAI
 
 
@@ -75,6 +76,10 @@ def create_dark_world():
         # accessible_area=set(logical_grid),
     )
 
+    # Entrance
+    entrance = set(product((-1, 0, 1), (-1, 0, 1)))
+    logical_grid.update(entrance)
+
     with timeit('border'):
         for p in border(logical_grid):
             Scenery(
@@ -87,9 +92,9 @@ def create_dark_world():
                 direction=random_dir()
             )
 
-    logical_grid.discard((0, 0))
     Teleporter(target=light_world).spawn(w, (0, 0))
 
+    logical_grid.difference_update(entrance)
     enemy_pos = random.sample(list(logical_grid), len(logical_grid) // 20)
 
     enemies = []
@@ -198,17 +203,24 @@ def create_light_world():
         accessible_area=world_area
     )
 
+    plant_areas = load_heightmap('assets/heightmap.png', SIZE, 55) & world_area
+
     TELEPORTER_POS = [
         (2, -13),
+        (2, -15),
+        (1, -14),
+        (3, -14),
     ]
+
+    trigger_pos = (2, -14)
+    trigger = Trigger('nature/stone_obelisk').spawn(light_world, trigger_pos)
+    plant_areas.discard(trigger_pos)
     for p in TELEPORTER_POS:
-        Teleporter().spawn(light_world, p)
+        plant_areas.discard(p)
+        Teleporter(trigger=trigger).spawn(light_world, p)
 
     # Insert a bat for testing
     # Enemy('enemies/bat', 10).spawn(light_world, (1, 1))
-
-    plant_areas = load_heightmap('assets/heightmap.png', SIZE, 55) & world_area
-    plant_areas.difference_update(TELEPORTER_POS)
 
     def spawn_random(cls, num, choices):
         positions = random.sample(list(plant_areas), num)

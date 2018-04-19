@@ -48,6 +48,7 @@ class Actor:
         self.direction = direction
         self.world.spawn(self, pos=pos, effect=effect)
         self.alive = True
+        return self
 
     def attack(self):
         self.world.notify_update(self, 'attack')
@@ -189,32 +190,76 @@ class Standable(Scenery):
 class Teleporter(Standable):
     model = 'nature/campfireStones_rocks'
     scale = 10
+    have_trigger = False
 
-    def __init__(self, target=None):
+    def __init__(self, target=None, trigger=None):
         self.target = target
+        if trigger:
+            self.have_trigger = True
+            trigger.add_teleporter(self)
         super().__init__(self.model)
 
     def on_enter(self, obj):
         if not isinstance(obj, PC):
             return
-        obj.kill(effect='teleport')
-        client = obj.client
-        client.sight.stop()
+        if self.have_trigger:
+            obj.client.text_message('Use the obelisk to teleport...')
+        else:
+            obj.alive = False
+            loop = asyncio.get_event_loop()
+            loop.call_later(0.2, self.teleport)
+
+    def _target(self):
+        """Get the target world to teleport to."""
         if self.target:
-            target = self.target
+            return self.target
         else:
             from .world_gen import create_dark_world
-            target = create_dark_world()
-        obj.world = target
+            return create_dark_world()
+
+    def teleport(self, target=None, pos=(0, 0)):
+        obj = self.world.get(self.pos)
+        if not isinstance(obj, PC):
+            return
+        obj.kill(effect='teleport')
+        client = obj.client
+        target = target or self._target()
 
         def respawn():
             # FIXME: we need to identify spawn point before we restart sight
-            obj.pos = (0, 0)
+            obj.world = target
+            obj.pos = pos
             client.sight.restart()
             obj.client.handle_refresh()
             try:
-                obj.spawn(target, pos=(0, 0), effect='teleport')
+                obj.spawn(target, pos=pos, effect='teleport')
             except Collision:
                 obj.spawn(target, effect='teleport')
         loop = asyncio.get_event_loop()
-        loop.call_later(0.5, respawn)
+        loop.call_later(1.0, respawn)
+
+
+class Trigger(Scenery):
+    def __init__(self, model):
+        super().__init__(model)
+        self.teleporters = []
+
+    def add_teleporter(self, t):
+        self.teleporters.append(t)
+
+    def on_act(self, pc):
+        to_teleport = []
+        for t in self.teleporters:
+            o = t.world.get(t.pos)
+            if o is not t:
+                x, y = t.pos
+                x -= self.pos[0]
+                y -= self.pos[1]
+                to_teleport.append((t, (x, y)))
+        if to_teleport:
+            from .world_gen import create_dark_world
+            target = create_dark_world()
+            for teleporter, pos in to_teleport:
+                teleporter.teleport(target, pos)
+        else:
+            pc.text_message('Nothing happened.')
