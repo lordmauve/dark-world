@@ -20,6 +20,8 @@ class World:
         self.by_name = {}
         self.metadata = metadata or {}
         self.subscriptions = weakref.WeakSet()
+
+        # Really defines the spawn area
         self.size = size
 
     def to_json(self):
@@ -28,8 +30,8 @@ class World:
     def spawn_point(self):
         """Return a random unoccupied spawn point in the world."""
         while True:
-            x = random.randrange(0, self.size)
-            y = random.randrange(0, self.size)
+            x = random.randint(-self.size, self.size)
+            y = random.randint(-self.size, self.size)
             if (x, y) not in self.grid:
                 return x, y
 
@@ -45,10 +47,6 @@ class World:
         else:
             r = Rect.from_center(pos, radius)
         for x, y in r.coords():
-            if not (0 <= x < self.size):
-                continue
-            if not (0 <= y < self.size):
-                continue
             obj = self.grid.get((x, y))
             while obj:
                 yield obj
