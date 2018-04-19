@@ -15,7 +15,7 @@ class World:
     We allow subscribers to subscribe to see changes in the world.
 
     """
-    def __init__(self, size, heightmap=None, metadata=None):
+    def __init__(self, size, accessible_area=None, metadata=None):
         self.grid = {}
         self.by_name = {}
         self.metadata = metadata or {}
@@ -24,21 +24,11 @@ class World:
         # Really defines the spawn area
         self.size = size
 
-        self.heightmap = heightmap.resize(
-            (2 * size + 1,) * 2,
-        ) if heightmap else None
+        self.accessible_area = accessible_area
 
     def in_bounds(self, pos):
-        x, y = pos
-        size = self.size
-        if not (
-                -size <= x <= size and
-                -size <= y <= size):
-            return False
-        if self.heightmap:
-            p = (x + size, y + size)
-            h = self.heightmap.getpixel(p)
-            return h > 45
+        if self.accessible_area:
+            return pos in self.accessible_area
         return True
 
     def to_json(self):

@@ -49,18 +49,6 @@ def timeit(msg):
 
 def create_dark_world():
     """Create an instance of a dark world."""
-    w = World(
-        size=10,
-        metadata={
-            'title': 'The Dark World',
-            'title_color': 'white',
-            'sun_color': 0x2222ff,
-            'sun_intensity': 0.2,
-            'ambient_color': 0x0000ff,
-            'ambient_intensity': 0.1,
-            'world_tex': 'dark_terrain',
-        }
-    )
 
     with timeit('walk'):
         logical_grid = {(0, 0)}
@@ -78,6 +66,21 @@ def create_dark_world():
 #        erode(logical_grid)
     with timeit('stochastic'):
         stochastic_erode(logical_grid)
+
+    w = World(
+        size=10,
+        metadata={
+            'title': 'The Dark World',
+            'title_color': 'white',
+            'sun_color': 0x2222ff,
+            'sun_intensity': 0.2,
+            'ambient_color': 0x0000ff,
+            'ambient_intensity': 0.1,
+            'world_tex': 'dark_terrain',
+        },
+        #accessible_area=set(logical_grid)
+    )
+
     with timeit('border'):
         for p in border(logical_grid):
             Scenery(
@@ -141,9 +144,28 @@ PLANTS = [
 ]
 
 
+def load_heightmap(filename, size, threshold=45):
+    """Load accessible regions from the given heightmap."""
+    heightmap = Image.open(filename)
+    heightmap = heightmap.resize(
+        (2 * size + 1,) * 2,
+    )
+
+    area = set()
+    for x in range(-size, size + 1):
+        for y in range(-size, size + 1):
+            p = (x + size, y + size)
+            h = heightmap.getpixel(p)
+            if h > threshold:
+                area.add((x, y))
+
+    return area
+
+
 def create_light_world():
+    SIZE = 320
     light_world = World(
-        size=320,
+        size=SIZE,
         metadata={
             'title': 'The Light World',
             'title_color': 'black',
@@ -152,25 +174,36 @@ def create_light_world():
             'ambient_color': 0xffffff,
             'ambient_intensity': 0.2
         },
-        heightmap=Image.open('assets/heightmap.png')
+        accessible_area=load_heightmap('assets/heightmap.png', SIZE)
     )
-    Teleporter().spawn(light_world, (2, -13))
+
+    TELEPORTER_POS = [
+        (2, -13),
+    ]
+    for p in TELEPORTER_POS:
+        Teleporter().spawn(light_world, p)
 
     # Insert a bat for testing
     # Enemy('enemies/bat', 10).spawn(light_world, (1, 1))
 
+    plant_areas = load_heightmap('assets/heightmap.png', SIZE, 55)
+    plant_areas.difference_update(TELEPORTER_POS)
+
     def spawn_random(cls, num, choices):
-        for _ in range(num):
+        positions = random.sample(list(plant_areas), num)
+        plant_areas.difference_update(positions)
+        for pos in positions:
             cls(
                 random.choice(choices),
             ).spawn(
                 light_world,
+                pos=pos,
                 direction=random_dir()
             )
 
-    spawn_random(Scenery, 20, TREES)
-    spawn_random(Scenery, 50, BUSHES)
-    spawn_random(Standable, 100, PLANTS)
+    spawn_random(Scenery, 200, TREES)
+    spawn_random(Scenery, 1000, BUSHES)
+    spawn_random(Standable, 2500, PLANTS)
     return light_world
 
 
