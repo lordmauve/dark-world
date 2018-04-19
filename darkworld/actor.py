@@ -18,6 +18,9 @@ class Actor:
         self.direction = Direction.NORTH
         self.alive = False
 
+    def __repr__(self):
+        return f'<{type(self).__name__} {self.name}>'
+
     @property
     def world(self):
         """Return the world."""
@@ -146,6 +149,11 @@ class Enemy(Mob):
         dmg = 1  # TODO: Calculate damage to apply
         self.hit(dmg)
 
+    def on_death(self):
+        from .items import generate_loot
+        loot = generate_loot()
+        loot.spawn(self.world, self.pos, effect='drop')
+
     def to_json(self):
         return {
             'name': self.name,
@@ -263,3 +271,17 @@ class Trigger(Scenery):
                 teleporter.teleport(target, pos)
         else:
             pc.text_message('Nothing happened.')
+
+
+class Collectable(Standable):
+    """A collectable object."""
+    scale = 1
+
+    def __init__(self, title, model):
+        self.title = title
+        super().__init__(model)
+
+    def on_enter(self, pc):
+        self.kill()
+        pc.client.text_message(f'Picked up {self.title}')
+

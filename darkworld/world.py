@@ -101,12 +101,22 @@ class World:
         self.grid[pos] = obj
         obj.below = existing
 
-    def _pop(self, pos):
+    def _pop(self, pos, obj):
         o = self.grid[pos]
-        if o.below is not None:
-            self.grid[pos] = o.below
+        if o is obj:
+            if o.below is not None:
+                self.grid[pos] = o.below
+            else:
+                del self.grid[pos]
         else:
-            del self.grid[pos]
+            while o:
+                above = o
+                o = o.below
+                if o is obj:
+                    break
+            else:
+                raise KeyError(f'{obj} not found at {pos}')
+                above.below = o.below
 
     def move(self, obj, to_pos):
         """Move the object in the grid."""
@@ -143,7 +153,7 @@ class World:
     def kill(self, obj, effect=None):
         """Remove an object from the grid."""
         pos = obj.pos
-        self._pop(pos)
+        self._pop(pos, obj)
         del self.by_name[obj.name]
         self.get_subscribers(pos).kill(obj, pos, effect)
         return pos
