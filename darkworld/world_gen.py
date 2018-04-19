@@ -78,7 +78,7 @@ def create_dark_world():
             'ambient_intensity': 0.1,
             'world_tex': 'dark_terrain',
         },
-        #accessible_area=set(logical_grid)
+        # accessible_area=set(logical_grid),
     )
 
     with timeit('border'):
@@ -162,8 +162,30 @@ def load_heightmap(filename, size, threshold=45):
     return area
 
 
+def reachable(area, pos):
+    """Find the area reachable from a given set of coordinates."""
+    reachable = {pos, }
+    edge = {pos, }
+    while edge:
+        pos = edge.pop()
+        for d in Direction:
+            p = adjacent(pos, d)
+            if p not in area:
+                continue
+            if p in reachable:
+                continue
+            reachable.add(p)
+            edge.add(p)
+    return reachable
+
+
 def create_light_world():
     SIZE = 320
+
+    world_area = reachable(
+        area=load_heightmap('assets/heightmap.png', SIZE),
+        pos=(0, 0)
+    )
     light_world = World(
         size=SIZE,
         metadata={
@@ -174,7 +196,7 @@ def create_light_world():
             'ambient_color': 0xffffff,
             'ambient_intensity': 0.2
         },
-        accessible_area=load_heightmap('assets/heightmap.png', SIZE)
+        accessible_area=world_area
     )
 
     TELEPORTER_POS = [
@@ -186,7 +208,7 @@ def create_light_world():
     # Insert a bat for testing
     # Enemy('enemies/bat', 10).spawn(light_world, (1, 1))
 
-    plant_areas = load_heightmap('assets/heightmap.png', SIZE, 55)
+    plant_areas = load_heightmap('assets/heightmap.png', SIZE, 55) & world_area
     plant_areas.difference_update(TELEPORTER_POS)
 
     def spawn_random(cls, num, choices):
