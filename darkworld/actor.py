@@ -113,7 +113,18 @@ class PC(Mob):
     def world(self, w):
         self._world = w
 
+    def hit(self, dmg):
+        super().hit(dmg)
+        self.client.write({
+            'op': 'setvalue',
+            'health': self.health
+        })
+
     def on_death(self):
+        self.client.write({
+            'op': 'setvalue',
+            'health': 0
+        })
         self.client.text_message('You are dead. Game over.')
         loop = asyncio.get_event_loop()
         loop.call_later(

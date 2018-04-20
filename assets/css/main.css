@@ -93,3 +93,25 @@ button {
     margin-top: 0;
     font-size: 120%;
 }
+
+#nums {
+    position: absolute;
+    top: 100px;
+    right: 20px;
+    z-index: 100;
+
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+    font-weight: 900;
+    font-family: 'Cinzel Decorative', cursive;
+
+    text-align: right;
+}
+
+#hp::after  {
+    color: #a00;
+    content: " \2764";
+}
+#gold::after  {
+    content: " \1F4B0";
+    color: #E90;
+}

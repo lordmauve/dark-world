@@ -108,6 +108,21 @@ class Client:
         self.name = None
         self.outqueue = asyncio.Queue()
         self.ws = ws
+        self._gold = 0  # TODO: load from storage
+
+    @property
+    def gold(self):
+        """Return the amount of gold."""
+        return self._gold
+
+    @gold.setter
+    def gold(self, v):
+        """Set the amount of gold."""
+        self._gold = v
+        self.write({
+            'op': 'setvalue',
+            'gold': self._gold
+        })
 
     def write(self, msg):
         """Write a message to the client."""
@@ -216,7 +231,9 @@ class Client:
             'op': 'refresh',
             'world': self.actor.world.to_json(),
             'pos': center,
-            'objs': objs
+            'objs': objs,
+            'gold': self.gold,
+            'health': self.actor.health,
         })
 
     def handle_act(self):

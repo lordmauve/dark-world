@@ -170,10 +170,10 @@ function init() {
     camera.lookAt(0, 0, 0);
 
     /* Allow controlling view with the mouse
-    */
     controls = new THREE.OrbitControls( camera );
     controls.target.set( 0, -2, -2 );
     controls.update();
+    */
 
     // envmap
     var path = 'textures/cube/skyboxsun25deg/';
@@ -431,6 +431,17 @@ function refresh(msg) {
         $('h1').text(msg.world.title);
     if (msg.world.title_color)
         $('h1').css({color: msg.world.title_color});
+    if (msg.gold)
+        $('#gold').text(msg.gold + "");
+    if (msg.health)
+        $('#hp').text(msg.health + "");
+}
+
+function on_setvalue(msg) {
+    if (msg.gold)
+        $('#gold').text(msg.gold + "");
+    if (msg.health)
+        $('#hp').text(msg.health + "");
 }
 
 function on_moved(msg) {
@@ -717,6 +728,7 @@ HANDLERS = {
         log(params.msg, 'error');
     },
     'refresh': refresh,
+    'setvalue': on_setvalue,
     'moved': on_moved,
     'killed': on_killed,
     'spawned': on_spawned,
