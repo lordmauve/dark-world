@@ -815,8 +815,10 @@ function on_mouse_move(event) {
     // calculate objects intersecting the picking ray
     const intersects = raycaster.intersectObjects(named, true);
 
-    if (!intersects.length)
+    if (!intersects.length) {
         hover.remove();
+        return;
+    }
 
     const intersection = intersects[0];
     let obj = intersection.object;

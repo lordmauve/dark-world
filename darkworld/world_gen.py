@@ -10,6 +10,7 @@ from .world import World
 from .actor import Enemy, Teleporter, Scenery, Standable, Trigger, Pickable, Large
 from .items import SHROOMS
 from .ai import EnemyAI
+from .npcs import Woodsman
 
 
 def erode(grid):
@@ -212,6 +213,9 @@ def create_light_world():
 
     tent = Large('nature/tent_detailedOpen', (2, 2)).spawn(light_world, (-14, 0), Direction.SOUTH)
     plant_areas.difference_update(tent.bounds().coords())
+
+    npc = Woodsman().spawn(light_world, (-14, 3), Direction.EAST)
+    plant_areas.discard(npc.pos)
 
     for p in TELEPORTER_POS:
         plant_areas.discard(p)

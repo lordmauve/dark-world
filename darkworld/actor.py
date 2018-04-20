@@ -65,6 +65,21 @@ class Actor:
         """Move the actor in the world."""
         self.world.move(self, to_pos)
 
+    def face(self, actor):
+        x, y = self.pos
+        ax, ay = actor.pos
+        was_direction = self.direction
+        if ax < x:
+            self.direction = Direction.WEST
+        elif ax > x:
+            self.direction = Direction.EAST
+        elif ay < y:
+            self.direction = Direction.NORTH
+        elif ay > y:
+            self.direction = Direction.SOUTH
+        if self.direction != was_direction:
+            self.world.move(self, self.pos)
+
     def move_step(self, direction):
         """Move by one step in the given direction."""
         if not self.world:
@@ -156,6 +171,27 @@ class PC(Mob):
         }
 
 
+class NPC(Actor):
+    next_uid = 0
+    title = 'NPC'
+    skin = 'skin_robot'
+
+    def __init__(self):
+        self.uid = self.next_uid
+        type(self).next_uid += 1
+        super().__init__(f'NPC-{self.uid}')
+
+    def to_json(self):
+        return {
+            'title': self.title,
+            'name': self.name,
+            'model': 'advancedCharacter',
+            'skin': self.skin,
+            'pos': self.pos,
+            'dir': self.direction.value
+        }
+
+
 class Enemy(Mob):
     next_uid = 0
 
@@ -167,9 +203,7 @@ class Enemy(Mob):
         super().__init__(f'{model}-{self.uid}')
 
     def on_act(self, pc):
-        from_dir = Direction((pc.direction.value + 2) % 4)
-        self.direction = from_dir
-        self.move(self.pos)
+        self.face(pc)
         pc.attack()
         dmg = 1  # TODO: Calculate damage to apply
         self.hit(dmg)

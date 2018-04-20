@@ -219,11 +219,15 @@ class Client:
         for obj in actor.world.query(actor.pos, actor.sight):
             # FIXME: should really be sight range of other actor
             if isinstance(obj, PC):
-                obj.client.write({
-                    'op': 'say',
-                    'user': self.name,
-                    'msg': msg
-                })
+                obj.client.say(self.name, msg)
+
+    def say(self, sender, msg):
+        """Say a message."""
+        self.write({
+            'op': 'say',
+            'user': sender,
+            'msg': msg
+        })
 
     def handle_refresh(self):
         center = self.actor.pos
