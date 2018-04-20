@@ -6,11 +6,11 @@ from itertools import product
 from PIL import Image
 
 from .coords import Direction, adjacent, random_dir
-from .world import World
+from .world import World, Collision
 from .actor import Enemy, Teleporter, Scenery, Standable, Trigger, Pickable, Large
 from .items import SHROOMS
 from .ai import EnemyAI
-from .npcs import Woodsman
+from .npcs import spawn_npcs
 
 
 def erode(grid):
@@ -214,8 +214,8 @@ def create_light_world():
     tent = Large('nature/tent_detailedOpen', (2, 2)).spawn(light_world, (-14, 0), Direction.SOUTH)
     plant_areas.difference_update(tent.bounds().coords())
 
-    npc = Woodsman().spawn(light_world, (-14, 3), Direction.EAST)
-    plant_areas.discard(npc.pos)
+    for npc in spawn_npcs(light_world):
+        plant_areas.discard(npc.pos)
 
     for p in TELEPORTER_POS:
         plant_areas.discard(p)
@@ -228,13 +228,16 @@ def create_light_world():
         positions = random.sample(list(plant_areas), num)
         plant_areas.difference_update(positions)
         for pos in positions:
-            cls(
-                random.choice(choices),
-            ).spawn(
-                light_world,
-                pos=pos,
-                direction=random_dir()
-            )
+            try:
+                cls(
+                    random.choice(choices),
+                ).spawn(
+                    light_world,
+                    pos=pos,
+                    direction=random_dir()
+                )
+            except Collision:
+                continue
 
     spawn_random(Scenery, 200, TREES)
     spawn_random(Scenery, 1000, BUSHES)

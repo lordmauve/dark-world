@@ -66,6 +66,7 @@ class EnemyAI:
         for e, target in self.enemies.items():
             if target and target.alive:
                 if manhattan_distance(e.pos, target.pos) == 1:
+                    e.face(target)
                     target.hit(1)
             elif random.random() < 0.2:
                 # random walk

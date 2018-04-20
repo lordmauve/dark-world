@@ -177,8 +177,8 @@ class NPC(Actor):
     skin = 'skin_robot'
 
     def __init__(self):
-        self.uid = self.next_uid
-        type(self).next_uid += 1
+        self.uid = NPC.next_uid
+        NPC.next_uid += 1
         super().__init__(f'NPC-{self.uid}')
 
     def to_json(self):
