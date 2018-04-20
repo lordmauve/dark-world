@@ -92,6 +92,9 @@ button {
 #dialog h2 {
     margin-top: 0;
     font-size: 120%;
+
+    font-weight: 900;
+    font-family: 'Cinzel Decorative', cursive;
 }
 
 #nums {
@@ -114,4 +117,22 @@ button {
 #gold::after  {
     content: " \1F4B0";
     color: #E90;
+}
+
+.choices {
+    height: 80%;
+    overflow: auto;
+}
+
+.choices .item {
+    display: inline-block;
+    width: 80px;
+    background-color: #eee;
+    padding: 5px;
+    text-align: center;
+}
+
+.choices .item .title {
+    display: block;
+    font-size: 60%;
 }

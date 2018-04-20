@@ -9,6 +9,7 @@ from .world import Collision
 from .world_gen import light_world
 from .actor import PC
 from .items import Inventory
+from .dialog import InventoryDialog
 
 
 loop = asyncio.get_event_loop()
@@ -109,6 +110,8 @@ class Client:
         self.outqueue = asyncio.Queue()
         self.ws = ws
         self._gold = 0  # TODO: load from storage
+        self.actor = None
+        self.dialog = None
 
     @property
     def gold(self):
@@ -245,6 +248,20 @@ class Client:
         else:
             self.actor.attack()
 
+    def handle_inventory(self):
+        self.dialog = InventoryDialog(self.inventory)
+        self.write({
+            'op': 'dialog',
+            **self.dialog.to_json(),
+        })
+
+    def handle_dlgresponse(self, value):
+        if not self.actor.alive:
+            return
+        if not self.dialog:
+            return
+        self.dialog.on_response(self, value)
+
     async def sender(self):
         while True:
             msg = await self.outqueue.get()
@@ -264,6 +281,9 @@ class Client:
                         'msg': 'You are not authenticated'
                     })
                     continue
+                if op != 'dlgresponse' and self.dialog:
+                    self.dialog = None
+                    self.write({'op': 'canceldialog'})
                 try:
                     handler = getattr(self, f'handle_{op}')
                     if inspect.iscoroutinefunction(handler):

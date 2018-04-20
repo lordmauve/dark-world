@@ -691,6 +691,20 @@ function fire_particles(model, material) {
     setTimeout(() => proton.removeEmitter(emitter), 500);
 }
 
+
+function on_dialog(msg) {
+    switch (msg.type) {
+        case "choose":
+            new ChoiceDialog(msg).show();
+            break;
+    };
+}
+
+function on_canceldialog(msg) {
+    if (current_dialog)
+        current_dialog.close();
+}
+
 var ws;
 var player_name = window.localStorage.player_name;
 
@@ -733,6 +747,7 @@ HANDLERS = {
     'killed': on_killed,
     'spawned': on_spawned,
     'update': on_update,
+    'dialog': on_dialog,
 };
 
 
@@ -772,6 +787,7 @@ const KEYMAP = {
     39: 'east',  // Right
     68: 'east',  // D
     32: 'act',  // Space
+    73: 'inventory',  // I
 };
 
 
@@ -797,7 +813,6 @@ var current_dialog = null;
 class Dialog {
     constructor(type) {
         this.type = type;
-        this.show();
     }
 
     show() {
@@ -849,12 +864,41 @@ class SpeakDialog extends Dialog {
 };
 
 
+class ChoiceDialog extends Dialog {
+    constructor(msg) {
+        super('choice');
+        this.title = msg.title;
+        this.choices = msg.choices;
+    }
+
+    populate(div) {
+        $('<h2>').text(this.title).appendTo(div);
+        const container = $('<div class="choices">').appendTo(div);
+        const dlg = this;
+        for (var c of this.choices) {
+            let item = $('<div class="item">').appendTo(container);
+            item.bind('click', function () {
+                send_msg({
+                    'op': 'dlgresponse',
+                    'value': c.key
+                });
+                dlg.close();
+            });
+            $('<img>').attr({'src': '2d/' + c.img + '.svg'}).appendTo(item);
+            if (c.title) {
+                $('<span class="title">').text(c.title).appendTo(item);
+            }
+        }
+    }
+}
+
+
 $(function () {
     $('#speak').bind('click', function () {
         if (current_dialog && current_dialog.type == 'speak') {
             current_dialog.close();
         } else {
-            new SpeakDialog();
+            new SpeakDialog().show();
         }
     });
 

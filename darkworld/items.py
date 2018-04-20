@@ -3,7 +3,9 @@ from collections import Counter, namedtuple
 
 
 # A stackable item
-Stackable = namedtuple('Stackable', 'singular plural model')
+class Stackable(namedtuple('Stackable', 'singular plural model')):
+    def on_use(self, pc):
+        """Subclasses can implement this."""
 
 
 class Unique(Stackable):
@@ -40,6 +42,10 @@ class Inventory:
         """Add an object to the inventory."""
         self.objects[obj] += 1
 
+    def __iter__(self):
+        """Iterate over items in the inventory as (obj, count) pairs."""
+        yield from self.objects.items()
+
     def have(self, obj, count=1):
         """Return True if a player has an object."""
         if obj not in self.objects:
@@ -67,11 +73,18 @@ banana = Stackable('banana', 'bananas', 'banana')
 
 
 class Shroom(Stackable):
+    image = 'mushroom'
+
     def __eq__(self, ano):
         return isinstance(ano, Shroom)
 
     def __hash__(self):
         return 42
+
+    def on_use(self, pc):
+        pc.client.text_message("You eat a mushroom.")
+        pc.add_health(5)
+        pc.client.inventory.take(self, 1)
 
 
 SHROOMS = [

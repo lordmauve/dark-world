@@ -93,6 +93,9 @@ class Mob(Actor):
         else:
             self.take_damage()
 
+    def add_health(self, v):
+        self.health = min(self.max_health, self.health + v)
+
     def on_death(self):
         pass
 
@@ -115,6 +118,13 @@ class PC(Mob):
 
     def hit(self, dmg):
         super().hit(dmg)
+        self.client.write({
+            'op': 'setvalue',
+            'health': self.health
+        })
+
+    def add_health(self, v):
+        super().add_health(v)
         self.client.write({
             'op': 'setvalue',
             'health': self.health
