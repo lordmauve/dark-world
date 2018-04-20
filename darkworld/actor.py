@@ -269,9 +269,7 @@ class Teleporter(Standable):
     def on_enter(self, obj):
         if not isinstance(obj, PC):
             return
-        if self.have_trigger:
-            obj.client.text_message('Use the obelisk to teleport...')
-        else:
+        if not self.have_trigger:
             obj.alive = False
             loop = asyncio.get_event_loop()
             loop.call_later(0.2, self.teleport)
@@ -315,6 +313,10 @@ class Trigger(Scenery):
         self.teleporters.append(t)
 
     def on_act(self, pc):
+        if not pc.client.can('teleport'):
+            pc.client.text_message("It doesn't seem to work...")
+            return
+
         to_teleport = []
         for t in self.teleporters:
             o = t.world.get(t.pos)

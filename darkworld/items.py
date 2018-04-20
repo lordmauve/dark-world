@@ -20,8 +20,8 @@ class Unique(Stackable):
 def generate_loot():
     """Generate a random piece of loot."""
     from .actor import Collectable
-    title, model = random.choice(COLLECTABLES)
-    return Collectable(title, model)
+    item = random.choice(COLLECTABLES)
+    return Collectable(item)
 
 
 class InsufficientItems(Exception):
@@ -70,6 +70,7 @@ class Inventory:
 
 # Define items here
 banana = Stackable('banana', 'bananas', 'banana')
+iron = Stackable('iron ingot', 'iron ingots', 'iron')
 
 
 class Shroom(Stackable):
@@ -99,4 +100,5 @@ shroom = SHROOMS[0]
 
 COLLECTABLES = [
     banana,
+    iron,
 ]

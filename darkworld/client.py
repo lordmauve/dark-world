@@ -112,6 +112,15 @@ class Client:
         self._gold = 0  # TODO: load from storage
         self.actor = None
         self.dialog = None
+        self.caps = set()
+
+    def can(self, capability):
+        """Return True if the player has a capability."""
+        return capability in self.caps
+
+    def grant(self, capability):
+        """Grant a capability to the player."""
+        self.caps.add(capability)
 
     @property
     def gold(self):

@@ -8,9 +8,11 @@ class Woodsman(NPC):
 
     def on_act(self, pc):
         self.face(pc)
-        pc.client.say(self.title, "Hello there!")
-        pc.client.say(self.title, "Have you seen the magician yet?")
-        pc.client.say(self.title, "Just follow this road left")
+        if pc.client.can('teleport'):
+            pc.client.say(self.title, "Hello there!")
+        else:
+            pc.client.say(self.title, "Have you seen the magician yet?")
+            pc.client.say(self.title, "Just follow this road to the left.")
 
 
 class Magician(NPC):
@@ -19,7 +21,11 @@ class Magician(NPC):
 
     def on_act(self, pc):
         self.face(pc)
-        pc.client.say(self.title, 'Hello there!')
+        pc.client.say(
+            self.title,
+            "The stone rings? They're powered by mushrooms!"
+        )
+        pc.client.grant('teleport')
 
 
 def spawn_npcs(world):
