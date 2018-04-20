@@ -4,6 +4,7 @@ import weakref
 
 from .coords import Direction, adjacent
 from .world import Collision
+from .items import InsufficientItems, shroom
 
 
 class Actor:
@@ -259,11 +260,20 @@ class Trigger(Scenery):
         to_teleport = []
         for t in self.teleporters:
             o = t.world.get(t.pos)
-            if o is not t:
+            if isinstance(o, PC):
                 x, y = t.pos
                 x -= self.pos[0]
                 y -= self.pos[1]
                 to_teleport.append((t, (x, y)))
+
+        try:
+            pc.client.inventory.take(shroom, 3)
+        except InsufficientItems as e:
+            pc.client.text_message(
+                f"{e.args[0]}. You don't have enough mushrooms to teleport!"
+            )
+            return
+
         if to_teleport:
             from .world_gen import create_dark_world
             target = create_dark_world()
@@ -273,15 +283,29 @@ class Trigger(Scenery):
             pc.text_message('Nothing happened.')
 
 
+class Pickable(Scenery):
+    """An object that can be picked."""
+
+    def __init__(self, item):
+        self.item = item
+        super().__init__(item.model)
+
+    def on_act(self, pc):
+        self.kill()
+        pc.client.text_message(f'Picked a {self.item.singular}')
+        pc.client.inventory.add(self.item)
+
+
 class Collectable(Standable):
     """A collectable object."""
     scale = 1
 
-    def __init__(self, title, model):
-        self.title = title
-        super().__init__(model)
+    def __init__(self, item):
+        self.item = item
+        super().__init__(item.model)
 
     def on_enter(self, pc):
         self.kill()
-        pc.client.text_message(f'Picked up {self.title}')
+        pc.client.text_message(f'Picked up a {self.item.singular}')
+        pc.client.inventory.add(self.item)
 

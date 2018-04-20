@@ -7,7 +7,8 @@ from PIL import Image
 
 from .coords import Direction, adjacent, random_dir
 from .world import World
-from .actor import Enemy, Teleporter, Scenery, Standable, Trigger
+from .actor import Enemy, Teleporter, Scenery, Standable, Trigger, Pickable
+from .items import SHROOMS
 from .ai import EnemyAI
 
 
@@ -113,10 +114,7 @@ BUSHES = [
     'nature/plant_bushDetailed',
     'nature/plant_bushSmall',
     'nature/plant_flatLarge',
-    'nature/mushroom_brownTall',
-    'nature/mushroom_redTall',
 ]
-
 
 TREES = [
     'nature/palm_small',
@@ -138,10 +136,6 @@ PLANTS = [
     'nature/flower_beige1',
     'nature/flower_beige2',
     'nature/flower_beige3',
-    'nature/mushroom_brownGroup',
-    'nature/mushroom_brown',
-    'nature/mushroom_redGroup',
-    'nature/mushroom_red',
     'nature/plant_flatSmall',
     'nature/plant_bush',
     'nature/plant_bushLarge',
@@ -236,6 +230,7 @@ def create_light_world():
 
     spawn_random(Scenery, 200, TREES)
     spawn_random(Scenery, 1000, BUSHES)
+    spawn_random(Pickable, 300, SHROOMS)
     spawn_random(Standable, 2500, PLANTS)
     return light_world
 

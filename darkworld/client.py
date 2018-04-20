@@ -8,6 +8,7 @@ from .coords import Rect, Direction, DIRECTION_MAP
 from .world import Collision
 from .world_gen import light_world
 from .actor import PC
+from .items import Inventory
 
 
 loop = asyncio.get_event_loop()
@@ -163,6 +164,7 @@ class Client:
             'msg': f"{name} connected"
         })
         self.write({'op': 'authok'})
+        self.inventory = Inventory()
         self.respawn()
 
     def text_message(self, msg):
