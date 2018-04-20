@@ -105,6 +105,7 @@ class PC(Mob):
 
     def __init__(self, client):
         super().__init__(f'Player-{client.name}')
+        self.title = client.name
         self.client = client
         self.sight = 8
 
@@ -145,6 +146,7 @@ class PC(Mob):
 
     def to_json(self):
         return {
+            'title': self.title,
             'name': self.name,
             'model': 'advancedCharacter',
             'skin': 'adventurer',

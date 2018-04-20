@@ -138,3 +138,9 @@ button {
     display: block;
     font-size: 60%;
 }
+
+#hover {
+    position: absolute;
+    z-index: 1000;
+    font-family: 'Cinzel Decorative', cursive;
+}

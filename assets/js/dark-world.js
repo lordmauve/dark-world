@@ -546,6 +546,10 @@ function spawn_obj(obj, effect) {
             );
         }
 
+        if (obj.title) {
+            model.title = obj.title;
+        }
+
         if (model.animations.length) {
             let clip = model.animations[0];
             let action = anims.clipAction(clip, model);
@@ -790,8 +794,46 @@ const KEYMAP = {
     73: 'inventory',  // I
 };
 
+var raycaster = new THREE.Raycaster();
+var mouse = new THREE.Vector2();
+var hover = $('<div id="hover">');
+
+
+function on_mouse_move(event) {
+    // calculate mouse position in normalized device coordinates
+    // (-1 to +1) for both components
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    let named = [];
+    for (let o of scene.children) {
+        if (o.title)
+            named.push(o);
+    }
+    // calculate objects intersecting the picking ray
+    const intersects = raycaster.intersectObjects(named, true);
+
+    if (!intersects.length)
+        hover.remove();
+
+    const intersection = intersects[0];
+    let obj = intersection.object;
+    while (!obj.title && obj.parent) {
+        obj = obj.parent;
+    }
+    hover.text(obj.title).css({
+        top: (event.clientY - 50) + 'px',
+        left: (event.clientX) + 'px'
+    }).appendTo(document.body);
+}
 
 function initInput() {
+
+   $(window).bind('mousemove', on_mouse_move);
+
+
    $(window).bind('keydown', function(event) {
         var keyCode = event.which;
         if (current_dialog) {
