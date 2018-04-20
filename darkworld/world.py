@@ -73,13 +73,27 @@ class World:
             raise Collision(
                 f'{obj.name} is already in the world at {obj.pos}'
             )
+        large = obj.size != (1, 1)
         if not pos:
+            if large:
+                raise Collision(
+                    'No position given for large object'
+                )
             pos = self.spawn_point()
 
-        self._push(obj, pos)
-        obj.pos = pos
-        self.by_name[obj.name] = obj
-        self.get_subscribers(pos).spawn(obj, pos, effect)
+        if not large:
+            self._push(obj, pos)
+            obj.pos = pos
+            self.by_name[obj.name] = obj
+            self.get_subscribers(pos).spawn(obj, pos, effect)
+        else:
+            obj.pos = pos
+            self.by_name[obj.name] = obj
+            subscribers = SubscriberSet()
+            for p in obj.bounds().coords():
+                self._push(obj, p)
+                subscribers.update(self.get_subscribers(p))
+            subscribers.spawn(obj, pos, effect)
         return pos
 
     def _push(self, obj, pos):

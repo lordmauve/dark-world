@@ -2,7 +2,7 @@
 import asyncio
 import weakref
 
-from .coords import Direction, adjacent
+from .coords import Direction, adjacent, Rect
 from .world import Collision
 from .items import InsufficientItems, shroom
 
@@ -10,6 +10,7 @@ from .items import InsufficientItems, shroom
 class Actor:
     standable = False
     below = None
+    size = (1, 1)
 
     def __init__(self, name):
         self.name = name
@@ -306,6 +307,34 @@ class Trigger(Scenery):
             pc.text_message('Nothing happened.')
 
 
+class Large(Scenery):
+    scale = 40
+
+    def __init__(self, model, size, scale=None):
+        super().__init__(model)
+        self.size = size
+        if scale:
+            self.scale = scale
+        else:
+            self.scale = type(self).scale
+
+    def bounds(self):
+        x, y = self.pos
+        w, h = self.size
+        return Rect(x, x + w - 1, y, y + h - 1)
+
+    @property
+    def center(self):
+        x, y = self.pos
+        w, h = self.size
+        return x + (w - 1) / 2, y + (h - 1) / 2
+
+    def to_json(self):
+        j = super().to_json()
+        j['pos'] = self.center
+        return j
+
+
 class Pickable(Scenery):
     """An object that can be picked."""
 
@@ -331,4 +360,3 @@ class Collectable(Standable):
         self.kill()
         pc.client.text_message(f'Picked up a {self.item.singular}')
         pc.client.inventory.add(self.item)
-

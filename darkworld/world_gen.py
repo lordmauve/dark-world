@@ -7,7 +7,7 @@ from PIL import Image
 
 from .coords import Direction, adjacent, random_dir
 from .world import World
-from .actor import Enemy, Teleporter, Scenery, Standable, Trigger, Pickable
+from .actor import Enemy, Teleporter, Scenery, Standable, Trigger, Pickable, Large
 from .items import SHROOMS
 from .ai import EnemyAI
 
@@ -209,6 +209,10 @@ def create_light_world():
     trigger_pos = (2, -14)
     trigger = Trigger('nature/stone_obelisk').spawn(light_world, trigger_pos)
     plant_areas.discard(trigger_pos)
+
+    tent = Large('nature/tent_detailedOpen', (2, 2)).spawn(light_world, (-14, 0), Direction.SOUTH)
+    plant_areas.difference_update(tent.bounds().coords())
+
     for p in TELEPORTER_POS:
         plant_areas.discard(p)
         Teleporter(trigger=trigger).spawn(light_world, p)
