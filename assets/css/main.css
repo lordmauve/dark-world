@@ -64,11 +64,13 @@ button {
     font-size: 80%;
 }
 
-#speak {
+#buttons {
     position: absolute;
     right: 20px;
     bottom: 20px;
     z-index: 1000;
+
+    text-align: right;
 }
 
 #dialog {

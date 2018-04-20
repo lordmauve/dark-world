@@ -901,6 +901,12 @@ $(function () {
             new SpeakDialog().show();
         }
     });
+    $('#inventory').bind('click', function() {
+        if (current_dialog && current_dialog.type == 'choice') {
+            current_dialog.close();
+        } else
+            send_msg({'op': 'inventory'});
+    });
 
     init();
     initInput();
