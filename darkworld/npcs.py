@@ -1,17 +1,21 @@
+import asyncio
 from .coords import Direction
 from .actor import NPC
+from .asyncutils import start_coroutine
 
 
 class Woodsman(NPC):
     skin = 'man'
     title = 'Woodsman'
 
-    def on_act(self, pc):
+    @start_coroutine
+    async def on_act(self, pc):
         self.face(pc)
-        if pc.client.can('teleport'):
-            pc.client.say(self.title, "Hello there!")
-        else:
+        pc.client.say(self.title, "Hello there!")
+        if not pc.client.can('teleport'):
+            await asyncio.sleep(0.5)
             pc.client.say(self.title, "Have you seen the magician yet?")
+            await asyncio.sleep(1)
             pc.client.say(self.title, "Just follow this road to the left.")
 
 
