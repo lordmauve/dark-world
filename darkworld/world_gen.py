@@ -89,6 +89,7 @@ def create_dark_world():
             (1, 1, 1): ('nature/cliffGrey_block', 1),
             (1, 0, 1): ('nature/cliffGrey_cornerInnerTop', 1),
             (0, 0, 1): ('nature/cliffGrey_top_2', 1),
+            (0, 1, 0): ('nature/cliffGrey_cornerTop', 1),
             (0, 0, 0): ('nature/cliffGrey_cornerTop', 1),
     }
 
