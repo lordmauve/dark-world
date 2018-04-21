@@ -160,8 +160,15 @@ class Client:
         if self.actor:
             self.actor.kill(effect='disconnect')
 
+    def save(self):
         pickle_atomic(self.caps_file, self.caps)
         pickle_atomic(self.inventory_file, self.inventory)
+
+    @classmethod
+    def save_all(cls):
+        """Save all connected clients."""
+        for c in cls.clients.values():
+            c.save()
 
     def handle_west(self):
         if self.actor.alive:

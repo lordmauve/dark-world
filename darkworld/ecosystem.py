@@ -6,6 +6,7 @@ from .world import Collision
 from .actor import Pickable
 from .items import Shroom
 from . import client
+from .persistence import save_world
 
 
 def tick():
@@ -30,14 +31,27 @@ async def run_ecosystem():
         return
 
 
-task = None
+tasks = []
+
+
+async def autosave():
+    """Save the whole world every 5 minutes."""
+    try:
+        while True:
+            await asyncio.sleep(300)
+            save_world()
+            client.Client.save_all()
+    except asyncio.CancelledError:
+        return
 
 
 def start_processes():
-    global task
-    task = asyncio.ensure_future(run_ecosystem())
+    tasks.extend([
+        asyncio.ensure_future(run_ecosystem()),
+        asyncio.ensure_future(autosave())
+    ])
 
 
 def stop_processes():
-    if task:
+    for task in tasks:
         task.cancel()
