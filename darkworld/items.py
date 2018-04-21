@@ -1,6 +1,8 @@
 import random
 from collections import Counter, namedtuple
 
+from .coords import random_dir
+
 
 ITEM_TYPES = {}
 
@@ -59,7 +61,7 @@ class Inventory:
         """Add an object to the inventory."""
         if isinstance(obj, str):
             obj = ITEM_TYPES[obj]
-        self.objects[obj] += 1
+        self.objects[obj] += count
 
     def __iter__(self):
         """Iterate over items in the inventory as (obj, count) pairs."""
@@ -221,6 +223,32 @@ ITEM_TYPES['iron'] = Iron
 class Axe(DumbItem):
     singular = image = model = 'axe'
     plural = 'axes'
+
+
+@item
+class TreeSeed(DumbItem):
+    singular = 'tree seed'
+    plural = 'tree seeds'
+    image = 'seed'
+
+    @staticmethod
+    def on_use(pc):
+        obj = pc.get_facing()
+        if obj:
+            if not obj.standable:
+                pc.client.text_message("There's no room to plant it here.")
+                return
+            else:
+                obj.kill()
+
+        pc.client.inventory.take('tree seed', 1)
+        from .actor import Tree
+        Tree.random().spawn(
+            pc.world,
+            pc.get_facing_pos(),
+            direction=random_dir(),
+            effect='grow'
+        )
 
 
 COLLECTABLES = [

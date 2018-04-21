@@ -353,10 +353,11 @@ function teleportIn(model) {
 
 function growIn(model) {
     const wrapper = wrapModel(model);
+    const s = model.scale.y;
     model.scale.set(0.05, 0.05, 0.05);
     scene.add(wrapper);
-    animateProps(model.scale, {x: 1, y: 1, z: 1}, {
-        duration: 200,
+    animateProps(model.scale, {x: s, y: s, z: s}, {
+        duration: 1000,
         interp: INTERP.easeOut,
         on_finish: function () {
             unwrapModel(model);

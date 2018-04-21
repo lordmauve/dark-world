@@ -52,10 +52,13 @@ class Actor:
     def on_act(self, pc):
         """Called when the object is acted on by the PC."""
 
+    def get_facing_pos(self):
+        """Get the position this actor is facing."""
+        return adjacent(self.pos, self.direction)
+
     def get_facing(self):
         """Get the object this actor is facing, if any."""
-        facing_pos = adjacent(self.pos, self.direction)
-        return self.world.get(facing_pos)
+        return self.world.get(self.get_facing_pos())
 
     def spawn(self, world, pos=None, direction=Direction.NORTH, effect=None):
         self.world = world
@@ -431,7 +434,7 @@ class Bush(Scenery):
         return cls(random.choice(cls.BUSHES))
 
 
-class Plant(Crushable):
+class Plant(Standable):
     PLANTS = [
         'nature/grass_dense',
         'nature/grass',
@@ -473,6 +476,14 @@ class Tree(Scenery):
             self.kill(effect='fall')
             stump = Stump('nature/treeStump_round_side')
             stump.spawn(world, pos, random_dir())
+
+            seeds = random.randint(0, 2)
+            if seeds:
+                pc.client.inventory.add('tree seed', seeds)
+                pc.client.text_message(
+                    f"You collected {seeds} tree seeds." if seeds != 1 else
+                    f"You collected a tree seed."
+                )
 
 
 class Mushroom(Pickable):

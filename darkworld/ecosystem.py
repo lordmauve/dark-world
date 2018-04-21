@@ -11,8 +11,8 @@ from .persistence import save_world
 
 def tick():
     spawn_foliage(Mushroom.random())
-    spawn_foliage(Plant.random())
-    # No way of clearing bushes yet
+    # No way of clearing bushes or plants yet
+    # spawn_foliage(Plant.random())
 #    if random.random() < 0.3:
 #        spawn_foliage(Bush.random())
     if random.random() < 0.05:

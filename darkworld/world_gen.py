@@ -8,10 +8,9 @@ from PIL import Image
 from .coords import Direction, adjacent, random_dir
 from .world import World, Collision
 from .actor import (
-    Teleporter, Scenery, Trigger, Pickable, Large, Block,
-    Chest, Bush, Plant, Tree, Crushable
+    Teleporter, Trigger, Large, Block,
+    Chest, Bush, Plant, Tree, Mushroom
 )
-from .items import Shroom
 from .enemies import random_enemy
 from .ai import EnemyAI
 from .npcs import spawn_npcs
@@ -249,14 +248,12 @@ def create_light_world():
     # Insert a bat for testing
     # Enemy('enemies/bat', 10).spawn(light_world, (1, 1))
 
-    def spawn_random(cls, num, choices):
+    def spawn_random(cls, num):
         positions = random.sample(list(plant_areas), num)
         plant_areas.difference_update(positions)
         for pos in positions:
             try:
-                cls(
-                    random.choice(choices),
-                ).spawn(
+                cls.random().spawn(
                     light_world,
                     pos=pos,
                     direction=random_dir()
