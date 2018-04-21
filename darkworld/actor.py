@@ -226,8 +226,9 @@ class Enemy(Mob):
 
     def on_death(self):
         from .items import generate_loot
-        loot = generate_loot()
-        loot.spawn(self.world, self.pos, effect='drop')
+        if random.random() < 0.6:
+            loot = generate_loot()
+            loot.spawn(self.world, self.pos, effect='drop')
 
     def to_json(self):
         return {
