@@ -5,7 +5,7 @@ import weakref
 import random
 
 from .asyncutils import start_coroutine
-from .coords import Direction, adjacent, Rect
+from .coords import Direction, adjacent, Rect, random_dir
 from .world import Collision
 from .items import InsufficientItems
 
@@ -412,6 +412,24 @@ class Chest(Scenery):
         amount = random.randint(10, 20)
         pc.client.text_message(f'The chest contains {amount} gold.')
         pc.client.gold += amount
+
+
+class Tree(Scenery):
+    def on_act(self, pc):
+        if pc.client.inventory.have('axe'):
+            world = self.world
+            pos = self.pos
+            self.kill(effect='fall')
+            stump = Stump('nature/treeStump_round_side')
+            stump.spawn(world, pos, random_dir())
+
+
+class Stump(Scenery):
+    scale = 12
+
+    def on_act(self, pc):
+        if pc.client.inventory.have('axe'):
+            self.kill(effect='fade')
 
 
 class Collectable(Standable):

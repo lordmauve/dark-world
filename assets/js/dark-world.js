@@ -13,7 +13,15 @@ const INTERP = {
 
     hop: function(x) {
         return -4 * x * (x - 1);
-    }
+    },
+
+    easeOut: function(x) {
+        return Math.sqrt(x);
+    },
+
+    easeIn: function(x) {
+        return x * x;
+    },
 };
 
 
@@ -289,6 +297,17 @@ function fadeOut(model, params) {
     if (!children)
         scene.remove(model);
 }
+
+function fallOut(model, params) {
+    fadeOut(model, params);
+    animateProps(model.rotation, {
+        x: Math.PI / 2,
+    }, {
+        duration: params.duration,
+        interp: INTERP.easeIn,
+    });
+}
+
 
 function wrapModel(model) {
     var wrapper = new THREE.Scene();
@@ -590,6 +609,10 @@ function on_killed(msg) {
         switch (effect) {
             case "fade":
                 fadeOut(model, {duration: 200});
+                break;
+
+            case "fall":
+                fallOut(model, {duration: 500});
                 break;
 
             case "teleport":

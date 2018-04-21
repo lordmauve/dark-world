@@ -9,7 +9,7 @@ from .coords import Direction, adjacent, random_dir
 from .world import World, Collision
 from .actor import (
     Teleporter, Scenery, Standable, Trigger, Pickable, Large, Block,
-    Chest
+    Chest, Tree
 )
 from .items import Shroom
 from .enemies import random_enemy
@@ -298,7 +298,7 @@ def create_light_world():
 
     light_world.foliage_area = list(plant_areas)
 
-    spawn_random(Scenery, 200, TREES)
+    spawn_random(Tree, 200, TREES)
     spawn_random(Scenery, 1000, BUSHES)
     spawn_random(Pickable, 300, [Shroom])
     spawn_random(Standable, 2500, PLANTS)
