@@ -3,12 +3,14 @@ import traceback
 import json
 import asyncio
 import weakref
+import re
 
 from .coords import Rect, Direction, DIRECTION_MAP
 from .world import Collision
 from .actor import PC
 from .items import Inventory
 from .dialog import InventoryDialog
+from .persistence import pickle_atomic, load_pickle
 
 
 loop = asyncio.get_event_loop()
@@ -146,6 +148,8 @@ class Client:
         self.outqueue.put_nowait(msg)
 
     def close(self):
+        if not self.name:
+            return
         print(f"{self.name} disconnected")
         self.outqueue.put_nowait(None)
         Client.broadcast({
@@ -155,6 +159,9 @@ class Client:
         self.clients.pop(self.name, None)
         if self.actor:
             self.actor.kill(effect='disconnect')
+
+        pickle_atomic(self.caps_file, self.caps)
+        pickle_atomic(self.inventory_file, self.inventory)
 
     def handle_west(self):
         if self.actor.alive:
@@ -172,8 +179,26 @@ class Client:
         if self.actor.alive:
             self.actor.move_step(Direction.SOUTH)
 
+    @property
+    def inventory_file(self):
+        return f'{self.name}-inventory.pck'
+
+    @property
+    def caps_file(self):
+        return f'{self.name}-caps.pck'
+
+    @property
+    def data_file(self):
+        return f'{self.name}-data.pck'
+
     def handle_auth(self, name):
-        # TODO: validate name
+        if not re.match(r'^[a-z][a-z_0-9]*[a-z]$', name, flags=re.I):
+            return self.write({
+                'op': 'authfail',
+                'reason': 'Invalid name; please use only lowercase letters ' +
+                    'and numbers'
+            })
+
         if self.name:
             return self.write({
                 'op': 'authfail',
@@ -193,7 +218,8 @@ class Client:
             'msg': f"{name} connected"
         })
         self.write({'op': 'authok'})
-        self.inventory = Inventory()
+        self.inventory = load_pickle(self.inventory_file) or Inventory()
+        self.caps = load_pickle(self.caps_file) or set()
         self.respawn()
 
     def text_message(self, msg):

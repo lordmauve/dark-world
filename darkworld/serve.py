@@ -9,6 +9,8 @@ from .client import Client
 from .world_gen import create_light_world
 from . import client
 
+from .persistence import pickle_atomic, load_pickle
+
 
 async def index(request):
     """Serve the index page."""
@@ -49,37 +51,23 @@ app.on_shutdown.append(on_shutdown)
 
 loop = asyncio.get_event_loop()
 
-
-savedir = Path.cwd() / 'savedata'
-world_file = savedir / 'light_world.pck'
+world_file = 'light_world.pck'
 
 
 def init_world():
-    if world_file.exists():
-        with open(world_file, 'rb') as f:
-            client.light_world = pickle.load(f)
-
-        if client.light_world:
-            print(f'World loaded from {world_file}')
-            return
-    client.light_world = create_light_world()
+    client.light_world = load_pickle(world_file)
+    if client.light_world:
+        print(f'World loaded from {world_file}')
+    else:
+        client.light_world = create_light_world()
 
 
 def save_world():
-    tmpfile = tempfile.NamedTemporaryFile(dir=savedir, delete=False)
-    try:
-        pickle.dump(client.light_world, tmpfile, -1)
-    except BaseException:
-        Path(tmpfile.name).unlink()
-        raise
-    else:
-        Path(tmpfile.name).rename(world_file)
-        print(f'World state saved to {world_file}')
+    pickle_atomic(world_file, client.light_world)
+    print(f'World state saved to {world_file}')
 
 
 def run_server(*, port=8000):
     """Run the server."""
-    if not savedir.exists():
-        savedir.mkdir()
     init_world()
     web.run_app(app, port=port)
