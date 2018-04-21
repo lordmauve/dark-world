@@ -1,9 +1,9 @@
 import asyncio
-from .dialog import ShopDialog
+from .dialog import ShopDialog, BlacksmithDialog
 from .coords import Direction
-from .actor import NPC
+from .actor import NPC, Scenery
 from .asyncutils import start_coroutine
-from .items import InsufficientItems, Torch, Elixir
+from .items import InsufficientItems, Torch, Elixir, Iron, Axe
 
 
 class Woodsman(NPC):
@@ -47,6 +47,7 @@ class Forager(NPC):
 
     @start_coroutine
     async def on_act(self, pc):
+        self.face(pc)
         if pc.client.can('eat_shrooms'):
             pc.client.say(self.title, "That's all I know!")
             return
@@ -71,6 +72,22 @@ class Forager(NPC):
                 pc.client.grant('eat_shrooms')
 
 
+class Blacksmith(NPC):
+    skin = 'man'
+    title = 'Blacksmith'
+
+    @start_coroutine
+    async def on_act(self, pc):
+        self.face(pc)
+        await asyncio.sleep(0.5)
+        pc.client.say(self.title, "Aye, I can sort ye out with some tools.")
+        await asyncio.sleep(2)
+        pc.client.say(self.title, "If ye have the metal.")
+        pc.client.show_dialog(BlacksmithDialog({
+            Axe: 10,
+        }))
+
+
 def spawn_npcs(world):
     """Spawn NPCs in the given world.
 
@@ -81,3 +98,5 @@ def spawn_npcs(world):
     yield Woodsman().spawn(world, (-14, 3), Direction.EAST)
     yield Magician().spawn(world, pos=(-40, -44))
     yield Forager().spawn(world, pos=(-20, 8))
+    yield Blacksmith().spawn(world, (-28, -18), Direction.SOUTH)
+    yield Scenery('anvil').spawn(world, (-28, -17))

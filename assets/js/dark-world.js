@@ -396,6 +396,8 @@ function pan_camera(x, z) {
 }
 
 function refresh(msg) {
+    if (current_dialog)
+        current_dialog.close();
     // Remove existing objects
     for (let i = 0; i < scene.children.length; i++) {
         let child = scene.children[i];

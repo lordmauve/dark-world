@@ -159,6 +159,7 @@ class Client:
         self.clients.pop(self.name, None)
         if self.actor:
             self.actor.kill(effect='disconnect')
+        self.save()
 
     def save(self):
         pickle_atomic(self.caps_file, self.caps)

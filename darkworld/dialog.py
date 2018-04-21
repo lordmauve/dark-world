@@ -1,3 +1,5 @@
+from .items import InsufficientItems
+
 class ChooseDialog:
     title = "Choose"
 
@@ -64,6 +66,7 @@ class InventoryDialog(ChooseDialog):
 
 class ShopDialog(ChooseDialog):
     title = "Buy"
+    unit = "\U0001F4B0"
 
     def __init__(self, available):
         """Construct a dialog for buying items.
@@ -82,7 +85,7 @@ class ShopDialog(ChooseDialog):
         return {
             'img': obj.image,
             'title': obj.singular,
-            'subtitle': f"{price} GP",
+            'subtitle': f"{price} {self.unit}",
         }
 
     def on_choose(self, pc, choice):
@@ -90,6 +93,24 @@ class ShopDialog(ChooseDialog):
         if pc.client.gold >= price:
             pc.client.gold -= price
             pc.client.inventory.add(obj.singular)
-            pc.client.text_message(f'You bought a {obj.singular} for {price} \U0001F4B0.')
+            pc.client.text_message(
+                f'You bought a {obj.singular} for {price} {self.unit}.'
+            )
         else:
             pc.client.text_message(f"You can't afford that.")
+
+
+class BlacksmithDialog(ShopDialog):
+    unit = 'iron'
+
+    def on_choose(self, pc, choice):
+        obj, price = choice
+        try:
+            pc.client.inventory.take(self.unit, price)
+        except InsufficientItems as e:
+            pc.client.text_message(f"You can't afford that. {e.args[0]}")
+        else:
+            pc.client.inventory.add(obj.singular)
+            pc.client.text_message(
+                f'You bought a {obj.singular} for {price} {self.unit}.'
+            )

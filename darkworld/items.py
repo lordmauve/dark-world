@@ -181,19 +181,29 @@ class Torch(Stackable):
             pc.set_light(True)
 
 
+class DumbItem(Stackable):
+    def get_model(cls):
+        return cls.model
+
+    @staticmethod
+    def on_use(pc):
+        pc.client.text_message("You can't do anything with that.")
+
+
 @item
 class Iron(Stackable):
     singular = 'iron ingot'
     plural = 'iron ingots'
     image = model = 'iron'
 
-    @classmethod
-    def get_model(cls):
-        return cls.model
 
-    @staticmethod
-    def on_use(pc):
-        pass
+ITEM_TYPES['iron'] = Iron
+
+
+@item
+class Axe(Stackable):
+    singular = image = model = 'axe'
+    plural = 'axes'
 
 
 COLLECTABLES = [
