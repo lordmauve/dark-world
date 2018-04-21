@@ -213,15 +213,16 @@ class NPC(Actor):
 
 class Enemy(Mob):
 
-    def __init__(self, model, health):
+    def __init__(self, model, health, damage):
         self.health = health
         self.model = model
+        self.damage = damage
         super().__init__()
 
     def on_act(self, pc):
         self.face(pc)
         pc.attack()
-        dmg = 1  # TODO: Calculate damage to apply
+        dmg = random.randint(1, self.damage)
         self.hit(dmg)
 
     def on_death(self):

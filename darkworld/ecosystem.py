@@ -34,7 +34,7 @@ def spawn_foliage(actor):
         except Collision:
             continue
         else:
-            print(f'Spawned {type(actor).__name__} at {pos}')
+            #print(f'Spawned {type(actor).__name__} at {pos}')
             return
 
 
@@ -43,7 +43,7 @@ async def run_ecosystem():
         while True:
             if client.Client.clients:
                 tick()
-            await asyncio.sleep(30)
+            await asyncio.sleep(15)
     except asyncio.CancelledError:
         return
 

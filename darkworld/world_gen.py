@@ -76,10 +76,10 @@ def create_dark_world():
         metadata={
             'title': 'The Dark World',
             'title_color': 'white',
-            'sun_color': 0xffffff,
-            'sun_intensity': 0.05,
+            'sun_color': 0x9999ff,
+            'sun_intensity': 0.01,
             'ambient_color': 0x4444ff,
-            'ambient_intensity': 0.05,
+            'ambient_intensity': 0.01,
             'world_tex': 'dark_terrain',
         },
         # accessible_area=set(logical_grid),
