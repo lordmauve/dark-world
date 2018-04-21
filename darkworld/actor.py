@@ -2,6 +2,7 @@
 import uuid
 import asyncio
 import weakref
+import random
 
 from .coords import Direction, adjacent, Rect
 from .world import Collision
@@ -397,8 +398,9 @@ class Chest(Scenery):
 
     def on_act(self, pc):
         self.kill(effect='fade')
-        pc.client.text_message(f'The chest contains 10 gold.')
-        pc.client.gold += 10
+        amount = random.randint(10, 20)
+        pc.client.text_message(f'The chest contains {amount} gold.')
+        pc.client.gold += amount
 
 
 class Collectable(Standable):
