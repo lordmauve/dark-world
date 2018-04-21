@@ -391,6 +391,16 @@ class Pickable(Scenery):
         pc.client.inventory.add(self.item)
 
 
+class Chest(Scenery):
+    def __init__(self):
+        super().__init__('chest')
+
+    def on_act(self, pc):
+        self.kill(effect='fade')
+        pc.client.text_message(f'The chest contains 10 gold.')
+        pc.client.gold += 10
+
+
 class Collectable(Standable):
     """A collectable object."""
     scale = 1

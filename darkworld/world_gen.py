@@ -8,7 +8,8 @@ from PIL import Image
 from .coords import Direction, adjacent, random_dir
 from .world import World, Collision
 from .actor import (
-    Teleporter, Scenery, Standable, Trigger, Pickable, Large, Block
+    Teleporter, Scenery, Standable, Trigger, Pickable, Large, Block,
+    Chest
 )
 from .items import Shroom
 from .enemies import random_enemy
@@ -50,17 +51,21 @@ def timeit(msg):
 def create_dark_world():
     """Create an instance of a dark world."""
 
+    end_points = set()
+
     with timeit('walk'):
         logical_grid = {(0, 0)}
         for i in range(random.randint(3, 6)):
             pos = (0, 0)
             last_dir = None
-            for step in range(random.randint(50, 100)):
+            for step in range(random.randint(100, 200)):
                 dir = last_dir
                 while dir is last_dir:
                     dir = random_dir()
                 pos = adjacent(pos, dir)
                 logical_grid.add(pos)
+
+            end_points.add(pos)
 
 #    with timeit('erode'):
 #        erode(logical_grid)
@@ -139,6 +144,15 @@ def create_dark_world():
     Teleporter(target=client.light_world).spawn(w, (0, 0))
 
     logical_grid.difference_update(entrance)
+
+    for e in end_points:
+        try:
+            Chest().spawn(w, e, direction=random_dir())
+        except Collision:
+            pass
+        else:
+            logical_grid.discard(e)
+
     enemy_pos = random.sample(list(logical_grid), len(logical_grid) // 20)
 
     enemies = []
@@ -241,7 +255,6 @@ def create_light_world():
         accessible_area=world_area,
         foliage_area=plant_areas,
     )
-
 
     TELEPORTER_POS = [
         (2, -13),

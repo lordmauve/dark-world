@@ -17,7 +17,6 @@ def tick():
         except Collision:
             continue
         else:
-            print(f'Spawned shroom at {shroom.pos}')
             break
 
 
