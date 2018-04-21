@@ -297,7 +297,10 @@ class Client:
             self.actor.attack()
 
     def handle_inventory(self):
-        self.dialog = InventoryDialog(self.inventory)
+        self.show_dialog(InventoryDialog(self.inventory))
+
+    def show_dialog(self, dlg):
+        self.dialog = dlg
         self.write({
             'op': 'dialog',
             **self.dialog.to_json(),

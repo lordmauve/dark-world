@@ -61,3 +61,35 @@ class InventoryDialog(ChooseDialog):
     def on_choose(self, pc, choice):
         choice.on_use(pc)
 
+
+class ShopDialog(ChooseDialog):
+    title = "Buy"
+
+    def __init__(self, available):
+        """Construct a dialog for buying items.
+
+        'available' should be a mapping of item -> price.
+
+        """
+        self.available = available
+        super().__init__({
+            obj.singular: (obj, price)
+            for obj, price in available.items()
+        })
+
+    def choice_to_json(self, choice):
+        obj, price = choice
+        return {
+            'img': obj.image,
+            'title': obj.singular,
+            'subtitle': f"{price} GP",
+        }
+
+    def on_choose(self, pc, choice):
+        obj, price = choice
+        if pc.client.gold >= price:
+            pc.client.gold -= price
+            pc.client.inventory.add(obj.singular)
+            pc.client.text_message(f'You bought a {obj.singular} for {price} \U0001F4B0.')
+        else:
+            pc.client.text_message(f"You can't afford that.")

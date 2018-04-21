@@ -140,8 +140,25 @@ class Banana(Stackable):
 
     @staticmethod
     def on_use(pc):
+        pc.client.inventory.take('banana', 1)
         pc.client.text_message("You eat a delicious banana.")
         pc.add_health(5)
+
+
+@item
+class Torch(Stackable):
+    singular = 'torch'
+    plural = 'torches'
+    image = model = 'torch'
+
+    @staticmethod
+    def on_use(pc):
+        if pc.light_on:
+            pc.client.text_message("You are already using a torch.")
+        else:
+            pc.client.text_message("You light a torch.")
+            pc.client.inventory.take('torch', 1)
+            pc.set_light(True)
 
 
 @item

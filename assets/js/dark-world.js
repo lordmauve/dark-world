@@ -172,10 +172,10 @@ function init() {
     camera.lookAt(0, 0, 0);
 
     /* Allow controlling view with the mouse
-    */
     controls = new THREE.OrbitControls( camera );
     controls.target.set( 0, -2, -2 );
     controls.update();
+    */
 
     // envmap
     var path = 'textures/cube/skyboxsun25deg/';
@@ -620,6 +620,16 @@ function on_update(msg) {
     } else if (msg.effect == 'damage-crit') {
         fire_particles(model, BLOOD);
         fire_particles(model, BLOOD);
+    } else if (msg.effect == 'light-on') {
+        let light = new THREE.PointLight(0xffcc55, 1.0, 80, 2);
+        light.position.set(0, 10, 8);
+        //light.castShadow = true;
+        model.add(light)
+    } else if (msg.effect == 'light-off') {
+        model.traverse((child) => {
+            if (child.isLight)
+                child.parent.remove(child);
+        });
     }
 }
 
@@ -935,6 +945,9 @@ class ChoiceDialog extends Dialog {
             $('<img>').attr({'src': '2d/' + c.img + '.svg'}).appendTo(item);
             if (c.title) {
                 $('<span class="title">').text(c.title).appendTo(item);
+            }
+            if (c.subtitle) {
+                $('<span class="title">').text(c.subtitle).appendTo(item);
             }
         }
     }

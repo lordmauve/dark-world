@@ -4,6 +4,7 @@ import asyncio
 import weakref
 import random
 
+from .asyncutils import start_coroutine
 from .coords import Direction, adjacent, Rect
 from .world import Collision
 from .items import InsufficientItems
@@ -134,6 +135,7 @@ class PC(Mob):
         self.title = client.name
         self.client = client
         self.sight = 8
+        self.light_on = False
 
     @property
     def world(self):
@@ -142,6 +144,16 @@ class PC(Mob):
     @world.setter
     def world(self, w):
         self._world = w
+
+    def set_light(self, turn_on):
+        if turn_on == self.light_on:
+            return
+        self.light_on = turn_on
+        self.world.notify_update(self, 'light-on' if turn_on else 'light-off')
+
+    def spawn(self, *args, **kwargs):
+        self.light_on = False
+        return super().spawn(*args, **kwargs)
 
     def hit(self, dmg, effect='damage'):
         super().hit(dmg, effect)
@@ -280,7 +292,8 @@ class Teleporter(Standable):
             from .world_gen import create_dark_world
             return create_dark_world()
 
-    def teleport(self, target=None, pos=(0, 0)):
+    @start_coroutine
+    async def teleport(self, target=None, pos=(0, 0)):
         obj = self.world.get(self.pos)
         if not isinstance(obj, PC):
             return
@@ -288,18 +301,16 @@ class Teleporter(Standable):
         client = obj.client
         target = target or self._target()
 
-        def respawn():
-            # FIXME: we need to identify spawn point before we restart sight
-            obj.world = target
-            obj.pos = pos
-            client.sight.restart()
-            obj.client.handle_refresh()
-            try:
-                obj.spawn(target, pos=pos, effect='teleport')
-            except Collision:
-                obj.spawn(target, effect='teleport')
-        loop = asyncio.get_event_loop()
-        loop.call_later(1.0, respawn)
+        await asyncio.sleep(1.0)
+        # FIXME: we need to identify spawn point before we restart sight
+        obj.world = target
+        obj.pos = pos
+        obj.client.handle_refresh()
+        client.sight.restart()
+        try:
+            obj.spawn(target, pos=pos, effect='teleport')
+        except Collision:
+            obj.spawn(target, effect='teleport')
 
 
 class Trigger(Scenery):

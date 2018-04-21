@@ -1,8 +1,9 @@
 import asyncio
+from .dialog import ShopDialog
 from .coords import Direction
 from .actor import NPC
 from .asyncutils import start_coroutine
-from .items import InsufficientItems
+from .items import InsufficientItems, Torch
 
 
 class Woodsman(NPC):
@@ -18,6 +19,12 @@ class Woodsman(NPC):
             pc.client.say(self.title, "Have you seen the magician yet?")
             await asyncio.sleep(1)
             pc.client.say(self.title, "Just follow this road to the left.")
+        else:
+            await asyncio.sleep(0.5)
+            pc.client.say(self.title, "I have some things for sale.")
+            pc.client.show_dialog(ShopDialog({
+                Torch: 10,
+            }))
 
 
 class Magician(NPC):

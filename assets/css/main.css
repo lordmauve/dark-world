@@ -138,10 +138,14 @@ button {
     vertical-align: top;
 }
 
+.choices .item .subtitle,
 .choices .item .title {
     display: block;
     font-size: 60%;
     line-height: 1.1em;
+}
+.choices .item .subtitle {
+    color: #666;
 }
 
 #hover {
