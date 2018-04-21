@@ -7,7 +7,9 @@ from PIL import Image
 
 from .coords import Direction, adjacent, random_dir
 from .world import World, Collision
-from .actor import Enemy, Teleporter, Scenery, Standable, Trigger, Pickable, Large
+from .actor import (
+    Enemy, Teleporter, Scenery, Standable, Trigger, Pickable, Large
+)
 from .items import SHROOMS
 from .ai import EnemyAI
 from .npcs import spawn_npcs
@@ -244,6 +246,3 @@ def create_light_world():
     spawn_random(Pickable, 300, SHROOMS)
     spawn_random(Standable, 2500, PLANTS)
     return light_world
-
-
-light_world = create_light_world()

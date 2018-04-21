@@ -17,7 +17,7 @@ class World:
     """
     def __init__(self, size, accessible_area=None, metadata=None):
         self.grid = {}
-        self.by_name = {}
+        self.by_uid = {}
         self.metadata = metadata or {}
         self.subscriptions = weakref.WeakSet()
 
@@ -69,7 +69,7 @@ class World:
 
     def spawn(self, obj, pos=None, effect=None):
         """Spawn an object into the grid."""
-        if obj.name in self.by_name:
+        if obj.uid in self.by_uid:
             raise Collision(
                 f'{obj.name} is already in the world at {obj.pos}'
             )
@@ -84,11 +84,11 @@ class World:
         if not large:
             self._push(obj, pos)
             obj.pos = pos
-            self.by_name[obj.name] = obj
+            self.by_uid[obj.uid] = obj
             self.get_subscribers(pos).spawn(obj, pos, effect)
         else:
             obj.pos = pos
-            self.by_name[obj.name] = obj
+            self.by_uid[obj.uid] = obj
             subscribers = SubscriberSet()
             for p in obj.bounds().coords():
                 self._push(obj, p)
@@ -110,7 +110,7 @@ class World:
         if not existing.standable:
             raise Collision(
                 f'Target position {pos} is occupied '
-                f'by {existing.name}'
+                f'by {existing}'
             )
         self.grid[pos] = obj
         obj.below = existing
@@ -168,7 +168,7 @@ class World:
         """Remove an object from the grid."""
         pos = obj.pos
         self._pop(pos, obj)
-        del self.by_name[obj.name]
+        del self.by_uid[obj.uid]
         self.get_subscribers(pos).kill(obj, pos, effect)
         return pos
 
@@ -185,6 +185,27 @@ class World:
             if any(p in s.rect for p in pos):
                 found.add(s)
         return found
+
+    def __getstate__(self):
+        grid = {}
+        for pos, obj in self.grid.items():
+            while not obj.serialisable:
+                obj = obj.below
+            grid[pos] = obj
+
+        return (grid, self.metadata, self.size, self.accessible_area)
+
+    def __setstate__(self, state):
+        self.grid, self.metadata, self.size, self.accessible_area = state
+        self.by_uid = {}
+        self.subscriptions = weakref.WeakSet()
+        for pos, obj in self.grid.items():
+            while True:
+                self.by_uid[obj.uid] = obj
+                obj.world = self
+                obj = obj.below
+                if not obj:
+                    break
 
 
 class SubscriberSet(set):

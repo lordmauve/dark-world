@@ -1,4 +1,5 @@
 """Actors are objects that can exist in the world."""
+import uuid
 import asyncio
 import weakref
 
@@ -8,12 +9,13 @@ from .items import InsufficientItems, shroom
 
 
 class Actor:
+    serialisable = True
     standable = False
     below = None
     size = (1, 1)
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
+        self.uid = uuid.uuid4().hex
         self.below = None
         self._world = None
         self.pos = (0, 0)
@@ -21,7 +23,7 @@ class Actor:
         self.alive = False
 
     def __repr__(self):
-        return f'<{type(self).__name__} {self.name}>'
+        return f'<{type(self).__name__} {self.uid}>'
 
     @property
     def world(self):
@@ -39,6 +41,11 @@ class Actor:
 
         """
         self._world = weakref.ref(w)
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        d.pop('_world', None)
+        return d
 
     def on_act(self, pc):
         """Called when the object is acted on by the PC."""
@@ -93,7 +100,8 @@ class Actor:
 
     def kill(self, effect=None):
         """Remove the actor from the world."""
-        self.world.kill(self, effect)
+        if self.world:
+            self.world.kill(self, effect)
         self.alive = False
 
 
@@ -117,10 +125,11 @@ class Mob(Actor):
 
 
 class PC(Mob):
+    serialisable = False
     health = max_health = 30
 
     def __init__(self, client):
-        super().__init__(f'Player-{client.name}')
+        super().__init__()
         self.title = client.name
         self.client = client
         self.sight = 8
@@ -163,7 +172,7 @@ class PC(Mob):
     def to_json(self):
         return {
             'title': self.title,
-            'name': self.name,
+            'name': self.uid,
             'model': 'advancedCharacter',
             'skin': 'adventurer',
             'pos': self.pos,
@@ -172,19 +181,13 @@ class PC(Mob):
 
 
 class NPC(Actor):
-    next_uid = 0
     title = 'NPC'
     skin = 'skin_robot'
-
-    def __init__(self):
-        self.uid = NPC.next_uid
-        NPC.next_uid += 1
-        super().__init__(f'NPC-{self.uid}')
 
     def to_json(self):
         return {
             'title': self.title,
-            'name': self.name,
+            'name': self.uid,
             'model': 'advancedCharacter',
             'skin': self.skin,
             'pos': self.pos,
@@ -193,14 +196,11 @@ class NPC(Actor):
 
 
 class Enemy(Mob):
-    next_uid = 0
 
     def __init__(self, model, health):
         self.health = health
         self.model = model
-        self.uid = self.next_uid
-        type(self).next_uid += 1
-        super().__init__(f'{model}-{self.uid}')
+        super().__init__()
 
     def on_act(self, pc):
         self.face(pc)
@@ -215,7 +215,7 @@ class Enemy(Mob):
 
     def to_json(self):
         return {
-            'name': self.name,
+            'name': self.uid,
             'model': self.model,
             'pos': self.pos,
             'dir': self.direction.value,
@@ -224,18 +224,15 @@ class Enemy(Mob):
 
 
 class Scenery(Actor):
-    next_uid = 0
     scale = 16.0
 
     def __init__(self, model):
+        super().__init__()
         self.model = model
-        self.uid = self.next_uid
-        type(self).next_uid += 1
-        super().__init__(f'{model}-{self.uid}')
 
     def to_json(self):
         return {
-            'name': self.name,
+            'name': self.uid,
             'model': self.model,
             'scale': self.scale,
             'pos': self.pos,

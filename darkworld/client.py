@@ -6,13 +6,15 @@ import weakref
 
 from .coords import Rect, Direction, DIRECTION_MAP
 from .world import Collision
-from .world_gen import light_world
 from .actor import PC
 from .items import Inventory
 from .dialog import InventoryDialog
 
 
 loop = asyncio.get_event_loop()
+
+# The world into which clients spawn
+light_world = None
 
 
 class ClientSight:
