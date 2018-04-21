@@ -241,8 +241,10 @@ function init() {
     window.addEventListener( 'resize', onWindowResize, false );
 
     // stats
+    /*
     stats = new Stats();
     container.appendChild( stats.dom );
+    */
 
     proton = new Proton();
     proton.addRender(new Proton.SpriteRender(scene));
