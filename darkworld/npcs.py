@@ -3,7 +3,7 @@ from .dialog import ShopDialog
 from .coords import Direction
 from .actor import NPC
 from .asyncutils import start_coroutine
-from .items import InsufficientItems, Torch
+from .items import InsufficientItems, Torch, Elixir
 
 
 class Woodsman(NPC):
@@ -24,6 +24,7 @@ class Woodsman(NPC):
             pc.client.say(self.title, "I have some things for sale.")
             pc.client.show_dialog(ShopDialog({
                 Torch: 10,
+                Elixir: 30,
             }))
 
 

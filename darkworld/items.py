@@ -146,6 +146,26 @@ class Banana(Stackable):
 
 
 @item
+class Elixir(Stackable):
+    singular = image = model = 'elixir'
+    plural = 'elixirs'
+
+    @classmethod
+    def get_model(cls):
+        return cls.model
+
+    @staticmethod
+    def on_use(pc):
+        health_needed = pc.max_health - pc.health
+        if health_needed <= 0:
+            pc.client.text_message("Your health is full.")
+        else:
+            pc.client.inventory.take('elixir', 1)
+            pc.client.text_message("You feel invigorated.")
+            pc.add_health(health_needed)
+
+
+@item
 class Torch(Stackable):
     singular = 'torch'
     plural = 'torches'
