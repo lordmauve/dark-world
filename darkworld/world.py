@@ -15,7 +15,12 @@ class World:
     We allow subscribers to subscribe to see changes in the world.
 
     """
-    def __init__(self, size, accessible_area=None, metadata=None):
+    def __init__(
+            self,
+            size,
+            accessible_area=None,
+            foliage_area=None,
+            metadata=None):
         self.grid = {}
         self.by_uid = {}
         self.metadata = metadata or {}
@@ -25,6 +30,7 @@ class World:
         self.size = size
 
         self.accessible_area = accessible_area
+        self.foliage_area = list(foliage_area) if foliage_area else None
 
     def __repr__(self):
         return f"<World {self.metadata['title']}>"
@@ -193,10 +199,22 @@ class World:
                 obj = obj.below
             grid[pos] = obj
 
-        return (grid, self.metadata, self.size, self.accessible_area)
+        return (
+            grid,
+            self.metadata,
+            self.size,
+            self.accessible_area,
+            self.foliage_area
+        )
 
     def __setstate__(self, state):
-        self.grid, self.metadata, self.size, self.accessible_area = state
+        (
+            self.grid,
+            self.metadata,
+            self.size,
+            self.accessible_area,
+            self.foliage_area
+        ) = state
         self.by_uid = {}
         self.subscriptions = weakref.WeakSet()
         for pos, obj in self.grid.items():

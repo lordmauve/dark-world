@@ -3,12 +3,13 @@ from .actor import Enemy
 
 
 ENEMIES = [
-    'enemies/bat',
-    'enemies/spider',
-    'enemies/rat',
+    ('enemies/bat', 10),
+    ('enemies/spider', 15),
+    ('enemies/rat', 20),
 ]
 
 
 def random_enemy():
     """Generate a random enemy."""
-    return Enemy(random.choice(ENEMIES), 10)
+    enemy, health = random.choice(ENEMIES)
+    return Enemy(enemy, health)

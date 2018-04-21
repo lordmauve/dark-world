@@ -196,7 +196,7 @@ class Client:
             return self.write({
                 'op': 'authfail',
                 'reason': 'Invalid name; please use only lowercase letters ' +
-                    'and numbers'
+                          'and numbers'
             })
 
         if self.name:

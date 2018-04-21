@@ -1,15 +1,11 @@
 import asyncio
-import tempfile
-import pickle
-from pathlib import Path
 
 import aiohttp
 from aiohttp import web
 from .client import Client
-from .world_gen import create_light_world
-from . import client
 
-from .persistence import pickle_atomic, load_pickle
+from .ecosystem import start_processes, stop_processes
+from .persistence import init_world, save_world
 
 
 async def index(request):
@@ -39,35 +35,22 @@ app.add_routes([
 
 
 async def on_shutdown(app):
-    for client in list(Client.clients.values()):
-        ws = client.ws
+    for c in list(Client.clients.values()):
+        ws = c.ws
         await ws.close(
             code=aiohttp.WSCloseCode.GOING_AWAY,
             message='Server shutdown'
         )
+    stop_processes()
     save_world()
 
 app.on_shutdown.append(on_shutdown)
 
 loop = asyncio.get_event_loop()
 
-world_file = 'light_world.pck'
-
-
-def init_world():
-    client.light_world = load_pickle(world_file)
-    if client.light_world:
-        print(f'World loaded from {world_file}')
-    else:
-        client.light_world = create_light_world()
-
-
-def save_world():
-    pickle_atomic(world_file, client.light_world)
-    print(f'World state saved to {world_file}')
-
 
 def run_server(*, port=8000):
     """Run the server."""
     init_world()
+    start_processes()
     web.run_app(app, port=port)

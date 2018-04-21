@@ -227,6 +227,7 @@ def create_light_world():
         area=load_heightmap('assets/heightmap.png', SIZE),
         pos=(0, 0)
     )
+    plant_areas = load_heightmap('assets/heightmap.png', SIZE, 55) & world_area
     light_world = World(
         size=SIZE,
         metadata={
@@ -237,10 +238,10 @@ def create_light_world():
             'ambient_color': 0xffffff,
             'ambient_intensity': 0.2
         },
-        accessible_area=world_area
+        accessible_area=world_area,
+        foliage_area=plant_areas,
     )
 
-    plant_areas = load_heightmap('assets/heightmap.png', SIZE, 55) & world_area
 
     TELEPORTER_POS = [
         (2, -13),
@@ -281,6 +282,8 @@ def create_light_world():
                 )
             except Collision:
                 continue
+
+    light_world.foliage_area = list(plant_areas)
 
     spawn_random(Scenery, 200, TREES)
     spawn_random(Scenery, 1000, BUSHES)

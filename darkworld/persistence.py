@@ -2,8 +2,12 @@ import pickle
 import tempfile
 from pathlib import Path
 
+from . import client
+from .world_gen import create_light_world
+
 
 savedir = Path.cwd() / 'savedata'
+world_file = 'light_world.pck'
 
 
 def pickle_atomic(outfile, data):
@@ -33,3 +37,16 @@ def load_pickle(name):
         return None
     with f:
         return pickle.load(f)
+
+
+def init_world():
+    client.light_world = load_pickle(world_file)
+    if client.light_world:
+        print(f'World loaded from {world_file}')
+    else:
+        client.light_world = create_light_world()
+
+
+def save_world():
+    pickle_atomic(world_file, client.light_world)
+    print(f'World state saved to {world_file}')
