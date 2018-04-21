@@ -8,8 +8,8 @@ from PIL import Image
 from .coords import Direction, adjacent, random_dir
 from .world import World, Collision
 from .actor import (
-    Teleporter, Scenery, Standable, Trigger, Pickable, Large, Block,
-    Chest, Tree
+    Teleporter, Scenery, Trigger, Pickable, Large, Block,
+    Chest, Bush, Plant, Tree, Crushable
 )
 from .items import Shroom
 from .enemies import random_enemy
@@ -167,38 +167,6 @@ def create_dark_world():
     return w
 
 
-BUSHES = [
-    'nature/plant_bushDetailed',
-    'nature/plant_bushSmall',
-    'nature/plant_flatLarge',
-]
-
-TREES = [
-    'nature/palm_small',
-    'nature/palmDetailed_small',
-    'nature/palm_large',
-    'nature/palmDetailed_large',
-]
-
-
-PLANTS = [
-    'nature/grass_dense',
-    'nature/grass',
-    'nature/flower_red1',
-    'nature/flower_red2',
-    'nature/flower_red3',
-    'nature/flower_blue1',
-    'nature/flower_blue2',
-    'nature/flower_blue3',
-    'nature/flower_beige1',
-    'nature/flower_beige2',
-    'nature/flower_beige3',
-    'nature/plant_flatSmall',
-    'nature/plant_bush',
-    'nature/plant_bushLarge',
-]
-
-
 def load_heightmap(filename, size, threshold=45):
     """Load accessible regions from the given heightmap."""
     heightmap = Image.open(filename)
@@ -298,8 +266,8 @@ def create_light_world():
 
     light_world.foliage_area = list(plant_areas)
 
-    spawn_random(Tree, 200, TREES)
-    spawn_random(Scenery, 1000, BUSHES)
-    spawn_random(Pickable, 300, [Shroom])
-    spawn_random(Standable, 2500, PLANTS)
+    spawn_random(Tree, 200)
+    spawn_random(Bush, 1000)
+    spawn_random(Mushroom, 300)
+    spawn_random(Plant, 2500)
     return light_world

@@ -264,6 +264,11 @@ class Standable(Scenery):
         """Subclasses should implement this to handle users exiting."""
 
 
+class Crushable(Standable):
+    def on_exit(self, obj):
+        self.kill()
+
+
 class Teleporter(Standable):
     model = 'nature/campfireStones_rocks'
     scale = 10
@@ -414,7 +419,53 @@ class Chest(Scenery):
         pc.client.gold += amount
 
 
+class Bush(Scenery):
+    BUSHES = [
+        'nature/plant_bushDetailed',
+        'nature/plant_bushSmall',
+        'nature/plant_flatLarge',
+    ]
+
+    @classmethod
+    def random(cls):
+        return cls(random.choice(cls.BUSHES))
+
+
+class Plant(Crushable):
+    PLANTS = [
+        'nature/grass_dense',
+        'nature/grass',
+        'nature/flower_red1',
+        'nature/flower_red2',
+        'nature/flower_red3',
+        'nature/flower_blue1',
+        'nature/flower_blue2',
+        'nature/flower_blue3',
+        'nature/flower_beige1',
+        'nature/flower_beige2',
+        'nature/flower_beige3',
+        'nature/plant_flatSmall',
+        'nature/plant_bush',
+        'nature/plant_bushLarge',
+    ]
+
+    @classmethod
+    def random(cls):
+        return cls(random.choice(cls.PLANTS))
+
+
 class Tree(Scenery):
+    TREES = [
+        'nature/palm_small',
+        'nature/palmDetailed_small',
+        'nature/palm_large',
+        'nature/palmDetailed_large',
+    ]
+
+    @classmethod
+    def random(cls):
+        return cls(random.choice(cls.TREES))
+
     def on_act(self, pc):
         if pc.client.inventory.have('axe'):
             world = self.world
@@ -422,6 +473,16 @@ class Tree(Scenery):
             self.kill(effect='fall')
             stump = Stump('nature/treeStump_round_side')
             stump.spawn(world, pos, random_dir())
+
+
+class Mushroom(Pickable):
+    @classmethod
+    def random(cls):
+        return cls()
+
+    def __init__(self):
+        from .items import Shroom
+        super().__init__(Shroom)
 
 
 class Stump(Scenery):

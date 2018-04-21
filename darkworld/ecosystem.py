@@ -2,23 +2,40 @@
 import asyncio
 import random
 
+from .coords import random_dir
 from .world import Collision
-from .actor import Pickable
-from .items import Shroom
+from .actor import Mushroom, Tree, Bush, Plant
 from . import client
 from .persistence import save_world
 
 
 def tick():
-    shroom = Pickable(Shroom)
-    while True:
+    spawn_foliage(Mushroom.random())
+    spawn_foliage(Plant.random())
+    # No way of clearing bushes yet
+#    if random.random() < 0.3:
+#        spawn_foliage(Bush.random())
+    if random.random() < 0.05:
+        spawn_foliage(Tree.random())
+
+
+def spawn_foliage(actor):
+    for _ in range(5):
         pos = random.choice(client.light_world.foliage_area)
+        if pos in client.light_world.grid:
+            continue
         try:
-            client.light_world.spawn(shroom, pos=pos)
+            actor.spawn(
+                client.light_world,
+                pos=pos,
+                direction=random_dir(),
+                effect='grow'
+            )
         except Collision:
             continue
         else:
-            break
+            print(f'Spawned {type(actor).__name__} at {pos}')
+            return
 
 
 async def run_ecosystem():

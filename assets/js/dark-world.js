@@ -351,6 +351,20 @@ function teleportIn(model) {
 }
 
 
+function growIn(model) {
+    const wrapper = wrapModel(model);
+    model.scale.set(0.05, 0.05, 0.05);
+    scene.add(wrapper);
+    animateProps(model.scale, {x: 1, y: 1, z: 1}, {
+        duration: 200,
+        interp: INTERP.easeOut,
+        on_finish: function () {
+            unwrapModel(model);
+        }
+    });
+}
+
+
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -596,6 +610,10 @@ function spawn_obj(obj, effect) {
 
             case "teleport":
                 teleportIn(model);
+                break;
+
+            case "grow":
+                growIn(model);
                 break;
         }
     });
