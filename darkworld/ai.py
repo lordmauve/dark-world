@@ -50,7 +50,7 @@ class EnemyAI:
 
         if isinstance(obj, PC):
             if not self.targets:
-                loop.call_soon(self.think)
+                loop.call_later(3, self.think)
             self.targets[obj] = set()
 
     def killed(self, obj, pos, effect):

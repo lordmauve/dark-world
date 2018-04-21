@@ -65,8 +65,8 @@ class Actor:
     def attack(self):
         self.world.notify_update(self, 'attack')
 
-    def take_damage(self, crit=False):
-        self.world.notify_update(self, 'damage-crit' if crit else 'damage')
+    def take_damage(self, effect='damage'):
+        self.world.notify_update(self, effect)
 
     def move(self, to_pos):
         """Move the actor in the world."""
@@ -108,14 +108,14 @@ class Actor:
 class Mob(Actor):
     health = max_health = 10
 
-    def hit(self, dmg):
+    def hit(self, dmg, effect='damage'):
         self.health -= dmg
         if self.health <= 0:
-            self.take_damage(crit=True)
+            self.take_damage('damage-crit' if effect == 'damage' else effect)
             self.kill()
             self.on_death()
         else:
-            self.take_damage()
+            self.take_damage(effect)
 
     def add_health(self, v):
         self.health = min(self.max_health, self.health + v)
@@ -142,8 +142,8 @@ class PC(Mob):
     def world(self, w):
         self._world = w
 
-    def hit(self, dmg):
-        super().hit(dmg)
+    def hit(self, dmg, effect='damage'):
+        super().hit(dmg, effect)
         self.client.write({
             'op': 'setvalue',
             'health': self.health

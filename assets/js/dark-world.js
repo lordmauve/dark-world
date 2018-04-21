@@ -111,6 +111,8 @@ const BLOOD = new THREE.SpriteMaterial({
     color: 0xff0000,
     lights: true
 });
+var VOMIT = BLOOD.clone();
+VOMIT.color = 0x00ff00;
 
 const TELEPORT = new THREE.MeshBasicMaterial({
     color: 0x1188DD,
@@ -611,6 +613,8 @@ function on_update(msg) {
             return;
         weapon.play();
         setTimeout(function () {fire_slash(model, -50);}, 300);
+    } else if (msg.effect == 'vomit') {
+        fire_particles(model, VOMIT);
     } else if (msg.effect == 'damage') {
         fire_particles(model, BLOOD);
     } else if (msg.effect == 'damage-crit') {
