@@ -35,13 +35,18 @@ class Magician(NPC):
     skin = 'womanAlternative'
     title = 'Magician'
 
-    def on_act(self, pc):
+    @start_coroutine
+    async def on_act(self, pc):
         self.face(pc)
+        await asyncio.sleep(0.5)
         pc.client.say(
             self.title,
             "The stone rings? They're powered by mushrooms!"
         )
         pc.client.grant('teleport')
+        await asyncio.sleep(2)
+        self.direction = Direction.NORTH
+        self.move(self.pos)
 
 
 class Forager(NPC):
@@ -135,3 +140,4 @@ def spawn_npcs(world):
     yield Blacksmith().spawn(world, (-28, -18), Direction.SOUTH)
     yield Scenery('anvil').spawn(world, (-28, -17))
     yield Large('house', size=(2, 2), scale=16).spawn(world, (-31, -19))
+    yield Large('nature/stone_statue', size=(2, 2), scale=32).spawn(world, (-41, -47), Direction.SOUTH)
