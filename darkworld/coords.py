@@ -17,6 +17,7 @@ DIRECTION_MAP = {
     Direction.WEST: (-1, 0),
     Direction.EAST: (1, 0),
 }
+INV_DIRECTION_MAP = {v: k for k, v in DIRECTION_MAP.items()}
 
 
 class Rect(namedtuple('BaseRect', 'x1 x2 y1 y2')):
@@ -57,6 +58,21 @@ ALL_DIRECTIONS = list(Direction)
 def random_dir():
     """Return a random direction."""
     return random.choice(ALL_DIRECTIONS)
+
+
+def neighbours(pos):
+    """Get all neighbours of a position."""
+    x, y = pos
+    for d in Direction:
+        dx, dy = DIRECTION_MAP[d]
+        yield x + dx, y + dy
+
+
+def direction_to(from_pos, to_pos):
+    fx, fy = from_pos
+    tx, ty = to_pos
+    delta = tx - fx, ty - fy
+    return INV_DIRECTION_MAP[delta]
 
 
 def manhattan_distance(p1, p2):
