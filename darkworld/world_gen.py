@@ -96,7 +96,8 @@ def create_dark_world():
                 direction=random_dir()
             )
 
-    Teleporter(target=light_world).spawn(w, (0, 0))
+    from . import client
+    Teleporter(target=client.light_world).spawn(w, (0, 0))
 
     logical_grid.difference_update(entrance)
     enemy_pos = random.sample(list(logical_grid), len(logical_grid) // 20)

@@ -2,8 +2,13 @@ import random
 from collections import Counter, namedtuple
 
 
-# A stackable item
 class Stackable(namedtuple('Stackable', 'singular plural model')):
+    """A stackable item."""
+
+    @property
+    def image(self):
+        return self.model
+
     def on_use(self, pc):
         """Subclasses can implement this."""
 
