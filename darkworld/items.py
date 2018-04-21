@@ -128,15 +128,21 @@ class Shroom(Stackable):
             pc.hit(-5, effect='vomit')
 
 
-@item
-class Banana(Stackable):
-    singular = 'banana'
-    plural = 'bananas'
-    image = model = 'banana'
-
+class DumbItem(Stackable):
     @classmethod
     def get_model(cls):
         return cls.model
+
+    @staticmethod
+    def on_use(pc):
+        pc.client.text_message("You can't do anything with that.")
+
+
+@item
+class Banana(DumbItem):
+    singular = 'banana'
+    plural = 'bananas'
+    image = model = 'banana'
 
     @staticmethod
     def on_use(pc):
@@ -146,13 +152,9 @@ class Banana(Stackable):
 
 
 @item
-class Elixir(Stackable):
+class Elixir(DumbItem):
     singular = image = model = 'elixir'
     plural = 'elixirs'
-
-    @classmethod
-    def get_model(cls):
-        return cls.model
 
     @staticmethod
     def on_use(pc):
@@ -166,7 +168,7 @@ class Elixir(Stackable):
 
 
 @item
-class Torch(Stackable):
+class Torch(DumbItem):
     singular = 'torch'
     plural = 'torches'
     image = model = 'torch'
@@ -181,17 +183,32 @@ class Torch(Stackable):
             pc.set_light(True)
 
 
-class DumbItem(Stackable):
-    def get_model(cls):
-        return cls.model
+@item
+class Compass(DumbItem):
+    singular = 'compass'
+    plural = 'compasses'
+    image = model = 'compass'
 
     @staticmethod
     def on_use(pc):
-        pc.client.text_message("You can't do anything with that.")
+        x, y = pc.pos
+        ns = 'S'
+        if y <= 0:
+            ns = 'N'
+            y = -y
+        ew = 'E'
+        if x < 0:
+            ew = 'W'
+            x = -x
+
+        pc.client.text_message(
+            f"It says you're at {y}°{ns} {x}°{ew} "
+            f"and facing {pc.direction.name.title()}"
+        )
 
 
 @item
-class Iron(Stackable):
+class Iron(DumbItem):
     singular = 'iron ingot'
     plural = 'iron ingots'
     image = model = 'iron'
@@ -201,7 +218,7 @@ ITEM_TYPES['iron'] = Iron
 
 
 @item
-class Axe(Stackable):
+class Axe(DumbItem):
     singular = image = model = 'axe'
     plural = 'axes'
 

@@ -133,10 +133,10 @@ class World:
                 above = o
                 o = o.below
                 if o is obj:
-                    break
+                    above.below = o.below
+                    return
             else:
                 raise KeyError(f'{obj} not found at {pos}')
-                above.below = o.below
 
     def move(self, obj, to_pos):
         """Move the object in the grid."""
