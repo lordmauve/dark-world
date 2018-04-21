@@ -24,6 +24,20 @@ def grant(username, capability):
 
 @cli.command()
 @click.argument('username')
+@click.argument('capability')
+def revoke(username, capability):
+    pickfile = f'{username}-caps.pck'
+    caps = load_pickle(pickfile)
+    if not caps:
+        click.echo(f'No such user {username}', err=True)
+        return
+
+    caps.discard(capability)
+    pickle_atomic(pickfile, caps)
+
+
+@cli.command()
+@click.argument('username')
 def show(username):
     pickfile = f'{username}-caps.pck'
     caps = load_pickle(pickfile)

@@ -754,11 +754,11 @@ HANDLERS = {
     'dialog': on_dialog,
 };
 
+var messages = $('<ul id="messages">').appendTo(document.body);
 
 function connect() {
     ws = new WebSocket("ws://" + location.host + "/ws");
 
-    var messages = $('<ul id="messages">').appendTo(document.body);
     ws.onopen = function () {
         log('Connection established')
         send_msg({

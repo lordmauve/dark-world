@@ -121,11 +121,11 @@ class Shroom(Stackable):
     def on_use(pc):
         pc.client.inventory.take('mushroom', 1)
         if pc.client.can('eat_shrooms'):
-            pc.client.text_message("You eat a mushroom. You feel sick.")
-            pc.hit(-5)
-        else:
             pc.client.text_message("You eat a safe mushroom.")
             pc.add_health(5)
+        else:
+            pc.client.text_message("You eat a mushroom. You feel sick.")
+            pc.hit(-5)
 
 
 @item

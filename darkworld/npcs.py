@@ -41,12 +41,13 @@ class Forager(NPC):
     async def on_act(self, pc):
         if pc.client.can('eat_shrooms'):
             pc.client.say(self.title, "That's all I know!")
+            return
 
         if not pc.client.can('start_forage'):
             pc.client.say(self.title, "Sure, I can teach you about foraging.")
             await asyncio.sleep(2)
             try:
-                pc.client.inventory.take('shroom', 5)
+                pc.client.inventory.take('mushroom', 5)
             except InsufficientItems:
                 pc.client.say(self.title, "Go get me 5 mushrooms.")
             else:
@@ -63,7 +64,12 @@ class Forager(NPC):
 
 
 def spawn_npcs(world):
-    """Spawn NPCs in the given world."""
+    """Spawn NPCs in the given world.
+
+    This is only called when generating a new world! To update this you need
+    to delete world data.
+
+    """
     yield Woodsman().spawn(world, (-14, 3), Direction.EAST)
     yield Magician().spawn(world, pos=(-40, -44))
-    yield Forager().spawn(world, pos=(-40, 6))
+    yield Forager().spawn(world, pos=(-20, 8))
