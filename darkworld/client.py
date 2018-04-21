@@ -5,7 +5,7 @@ import asyncio
 import weakref
 import re
 
-from .coords import Rect, Direction, DIRECTION_MAP
+from .coords import Rect, Direction, DIRECTION_MAP, border
 from .world import Collision
 from .actor import PC
 from .items import Inventory
@@ -271,16 +271,20 @@ class Client:
         self.actor = PC(self)
 
         # FIXME: need better way of finding good spawn points
-        dirs = list(DIRECTION_MAP.values())
-        for d in dirs:
-            try:
-                self.actor.spawn(light_world, pos=d)
-            except Collision:
-                continue
-            else:
+        seen = set()
+        ring = set(DIRECTION_MAP.values())
+        while True:
+            for p in ring:
+                seen.add(p)
+                try:
+                    self.actor.spawn(light_world, pos=p)
+                except Collision:
+                    continue
                 break
-        else:
-            self.actor.spawn(light_world)
+            else:
+                ring = border(seen) - seen
+                continue
+            break
         self.sight = ClientSight(self.actor)
 
     def handle_say(self, msg):

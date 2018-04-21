@@ -80,3 +80,13 @@ def manhattan_distance(p1, p2):
     p1x, p1y = p1
     p2x, p2y = p2
     return abs(p1x - p2x) + abs(p1y - p2y)
+
+
+def border(grid):
+    border = set()
+    for pos in grid:
+        for d in Direction:
+            p = adjacent(pos, d)
+            if p not in grid:
+                border.add(p)
+    return border

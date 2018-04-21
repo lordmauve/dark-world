@@ -5,7 +5,7 @@ from itertools import product
 
 from PIL import Image
 
-from .coords import Direction, adjacent, random_dir
+from .coords import Direction, adjacent, random_dir, border
 from .world import World, Collision
 from .actor import (
     Teleporter, Trigger, Large, Block,
@@ -27,16 +27,6 @@ def stochastic_erode(grid, prob=0.1):
         for d in Direction:
             if random.random() <= prob:
                 grid.add(adjacent(pos, d))
-
-
-def border(grid):
-    border = set()
-    for pos in grid:
-        for d in Direction:
-            p = adjacent(pos, d)
-            if p not in grid:
-                border.add(p)
-    return border
 
 
 @contextmanager
