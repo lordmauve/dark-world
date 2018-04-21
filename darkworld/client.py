@@ -162,7 +162,7 @@ class Client:
         self.save()
 
     def save(self):
-        pickle_atomic(self.caps_file, self.caps)
+        pickle_atomic(self.user_file(self.name), self.get_user_data())
         pickle_atomic(self.inventory_file, self.inventory)
 
     @classmethod
@@ -191,34 +191,55 @@ class Client:
     def inventory_file(self):
         return f'{self.name}-inventory.pck'
 
-    @property
-    def caps_file(self):
-        return f'{self.name}-caps.pck'
+    def user_file(self, name):
+        return f'{name}-user.pck'
 
-    @property
-    def data_file(self):
-        return f'{self.name}-data.pck'
+    def get_user_data(self):
+        if self.actor:
+            health = self.actor.health
+            if health <= 0:
+                health = self.actor.max_health
+        else:
+            health = None
+        return {
+            'token': self.token,
+            'gold': self.gold,
+            'health': health,
+            'caps': self.caps,
+        }
 
-    def handle_auth(self, name):
+    def load_user_data(self, username):
+        return load_pickle(self.user_file(username))
+
+    def handle_auth(self, name, token):
+        if self.name:
+            return self.write({
+                'op': 'authfail',
+                'reason': 'You are already authenticated'
+            })
+
         if not re.match(r'^[a-z][a-z_0-9]*[a-z]$', name, flags=re.I):
             return self.write({
                 'op': 'authfail',
                 'reason': 'Invalid name; please use only lowercase letters ' +
                           'and numbers'
             })
+        data = self.load_user_data(name) or {}
+        if data:
+            if token != data['token']:
+                return self.write({
+                    'op': 'authfail',
+                    'reason': 'Invalid authentication token',
+                })
 
-        if self.name:
-            return self.write({
-                'op': 'authfail',
-                'reason': 'You are already authenticated'
-            })
         if name in self.clients:
             return self.write({
                 'op': 'authfail',
-                'reason': 'This name is already taken'
+                'reason': 'You are already connected',
             })
 
         self.name = name
+        self.token = token
         self.clients[name] = self
         print(f"{name} connected")
         Client.broadcast({
@@ -227,8 +248,9 @@ class Client:
         })
         self.write({'op': 'authok'})
         self.inventory = load_pickle(self.inventory_file) or Inventory()
-        self.caps = load_pickle(self.caps_file) or set()
-        self.respawn()
+        self.gold = data.get('gold') or 0
+        self.caps = data.get('caps') or set()
+        self.respawn(health=data.get('health') or 0)
 
     def text_message(self, msg):
         """Send a text message to the user."""
@@ -237,8 +259,10 @@ class Client:
             'msg': msg
         })
 
-    def respawn(self, msg=None):
+    def respawn(self, msg=None, health=None):
         self.spawn_actor()
+        if health is not None:
+            self.actor.health = health
         self.handle_refresh()
         if msg:
             self.text_message(msg)

@@ -769,6 +769,18 @@ function on_canceldialog(msg) {
 
 var ws;
 var player_name = window.localStorage.player_name;
+var auth_token = window.localStorage.auth_token;
+
+if (!auth_token) {
+    let s = "";
+    let rand = crypto.getRandomValues(new Uint8Array(16))
+    for (let c of rand) {
+        s += c.toString(16);
+    }
+    window.localStorage.auth_token = s;
+    auth_token = s;
+}
+
 
 function send_msg(msg) {
     ws.send(JSON.stringify(msg));
@@ -791,11 +803,12 @@ HANDLERS = {
         );
     },
     'authfail': function (params) {
-        log(params.msg, 'error');
+        log(params.reason, 'error');
         player_name = null;
         while (!player_name) {
             player_name = prompt('What is your name?');
         };
+        connect();
     },
     'authok': function (params) {
         window.localStorage.player_name = player_name;
@@ -818,10 +831,11 @@ function connect() {
     ws = new WebSocket("ws://" + location.host + "/ws");
 
     ws.onopen = function () {
-        log('Connection established')
+        log('Connection established');
         send_msg({
             'op': 'auth',
-            'name': player_name
+            'name': player_name,
+            'token': auth_token
         });
     };
     ws.onmessage = function (event) {
