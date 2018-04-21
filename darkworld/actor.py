@@ -312,6 +312,7 @@ class Teleporter(Standable):
             return
         obj.kill(effect='teleport')
         client = obj.client
+        client.play_sound('teleport')
         target = target or self._target()
 
         await asyncio.sleep(1.0)

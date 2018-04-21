@@ -69,20 +69,24 @@ function load_skin(name) {
 }
 
 
+var MODEL_CACHE = {};
+
+
 function load_model(obj, onload) {
     let model_name = obj.model;
     let skin_name = obj.skin || null;
 
     let scale = obj.scale || 1.0;
 
-    model_loader.load('models/' + model_name + '.gltf', function ( gltf ) {
-        let model = gltf.scene;
+    let ready = function ( gltf ) {
+        let model = gltf.scene.clone(true);
         if (model.children.length == 1) {
             model = model.children[0];
         }
         model.animations = gltf.animations;
         model.traverse( function ( child ) {
             if ( child.isMesh ) {
+                child.material = child.material.clone();
                 if (skin_name) {
                     const skin = load_skin(skin_name);
                     child.material.map = skin;
@@ -103,7 +107,16 @@ function load_model(obj, onload) {
         if (onload) {
             onload(model);
         }
-    });
+    };
+
+    if (MODEL_CACHE[model_name]) {
+        ready(MODEL_CACHE[model_name]);
+    } else {
+        model_loader.load('models/' + model_name + '.gltf', function (gltf) {
+            MODEL_CACHE[model_name] = gltf;
+            ready(gltf);
+        });
+    }
 }
 
 const SHADOW_SIZE = 150;
@@ -384,7 +397,7 @@ function animate() {
     proton.update();
     anims.update(clock.getDelta());
     renderer.render( scene, camera );
-    stats.update();
+    //stats.update();
 }
 
 
@@ -769,6 +782,14 @@ function on_canceldialog(msg) {
         current_dialog.close();
 }
 
+function on_sound(msg) {
+    const urls = [
+        '../sounds/' + msg.sound + '.mp3',
+        '../sounds/' + msg.sound + '.wav'
+    ];
+    new Howl({urls: urls}).play();
+}
+
 var ws;
 var player_name = window.localStorage.player_name;
 var auth_token = window.localStorage.auth_token;
@@ -824,6 +845,7 @@ HANDLERS = {
     'killed': on_killed,
     'spawned': on_spawned,
     'update': on_update,
+    'sound': on_sound,
     'dialog': on_dialog,
 };
 

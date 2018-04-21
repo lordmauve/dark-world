@@ -298,6 +298,13 @@ class Client:
             'msg': msg
         })
 
+    def play_sound(self, name):
+        """Play a sound."""
+        self.write({
+            'op': 'sound',
+            'sound': name
+        })
+
     def handle_refresh(self):
         center = self.actor.pos
         objs = []
