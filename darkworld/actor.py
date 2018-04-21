@@ -484,6 +484,9 @@ class Tree(Scenery):
                     f"You collected {seeds} tree seeds." if seeds != 1 else
                     f"You collected a tree seed."
                 )
+            if random.random() < 0.06:
+                pc.client.inventory.take('axe')
+                pc.client.text_message("Your axe broke!")
 
 
 class Mushroom(Pickable):
@@ -502,6 +505,9 @@ class Stump(Scenery):
     def on_act(self, pc):
         if pc.client.inventory.have('axe'):
             self.kill(effect='fade')
+            if random.random() < 0.06:
+                pc.client.inventory.take('axe')
+                pc.client.text_message("Your axe broke!")
 
 
 class Collectable(Standable):
