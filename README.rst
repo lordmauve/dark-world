@@ -4,10 +4,10 @@ The Dark World
 
 .. image:: https://pyweek.org/media/dl/25/wasabi25/day6-1.png
 
-The Dark World is a web-based MMO written for `Pyweek 25`_. The theme was
+`The Dark World`_ is a web-based MMO written for `Pyweek 25`_. The theme was
 "Two Worlds".
 
-
+.. _`The Dark World`: https://pyweek.org/e/wasabi25/
 .. _`Pyweek 25`: https://pyweek.org/25/
 
 
