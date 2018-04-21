@@ -1,7 +1,7 @@
 import asyncio
 from .dialog import ShopDialog, BlacksmithDialog
 from .coords import Direction
-from .actor import NPC, Scenery
+from .actor import NPC, Scenery, Large
 from .asyncutils import start_coroutine
 from .items import (
     InsufficientItems, Torch, Elixir, Axe, Compass, AdventurerSword
@@ -134,3 +134,4 @@ def spawn_npcs(world):
     yield Forager().spawn(world, pos=(-20, 8))
     yield Blacksmith().spawn(world, (-28, -18), Direction.SOUTH)
     yield Scenery('anvil').spawn(world, (-28, -17))
+    yield Large('house', size=(2, 2), scale=16).spawn(world, (-31, -19))
