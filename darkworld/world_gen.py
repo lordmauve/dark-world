@@ -10,7 +10,7 @@ from .world import World, Collision
 from .actor import (
     Teleporter, Scenery, Standable, Trigger, Pickable, Large, Block
 )
-from .items import SHROOMS
+from .items import Shroom
 from .enemies import random_enemy
 from .ai import EnemyAI
 from .npcs import spawn_npcs
@@ -284,6 +284,6 @@ def create_light_world():
 
     spawn_random(Scenery, 200, TREES)
     spawn_random(Scenery, 1000, BUSHES)
-    spawn_random(Pickable, 300, SHROOMS)
+    spawn_random(Pickable, 300, [Shroom])
     spawn_random(Standable, 2500, PLANTS)
     return light_world

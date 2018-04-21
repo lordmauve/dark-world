@@ -170,10 +170,10 @@ function init() {
     camera.lookAt(0, 0, 0);
 
     /* Allow controlling view with the mouse
+    */
     controls = new THREE.OrbitControls( camera );
     controls.target.set( 0, -2, -2 );
     controls.update();
-    */
 
     // envmap
     var path = 'textures/cube/skyboxsun25deg/';
@@ -581,8 +581,8 @@ function spawn_obj(obj, effect) {
 function on_killed(msg) {
     var model = scene.getObjectByName(msg.obj.name);
     var effect = msg.effect || 'none';
-    model.name = '';
     if (model) {
+        model.name = '';
         switch (effect) {
             case "fade":
                 fadeOut(model, {duration: 200});
@@ -919,7 +919,7 @@ class ChoiceDialog extends Dialog {
         $('<h2>').text(this.title).appendTo(div);
         const container = $('<div class="choices">').appendTo(div);
         const dlg = this;
-        for (var c of this.choices) {
+        for (let c of this.choices) {
             let item = $('<div class="item">').appendTo(container);
             item.bind('click', function () {
                 send_msg({

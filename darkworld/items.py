@@ -2,8 +2,20 @@ import random
 from collections import Counter, namedtuple
 
 
+ITEM_TYPES = {}
+
+
+def item(cls):
+    """Register an item to the item types dict."""
+    ITEM_TYPES[cls.singular] = cls
+    return cls
+
+
 class Stackable(namedtuple('Stackable', 'singular plural model')):
     """A stackable item."""
+
+    def get_model(self):
+        return self.model
 
     @property
     def image(self):
@@ -45,6 +57,8 @@ class Inventory:
 
     def add(self, obj, count=1):
         """Add an object to the inventory."""
+        if isinstance(obj, str):
+            obj = ITEM_TYPES[obj]
         self.objects[obj] += 1
 
     def __iter__(self):
@@ -53,12 +67,18 @@ class Inventory:
 
     def have(self, obj, count=1):
         """Return True if a player has an object."""
+        if isinstance(obj, str):
+            obj = ITEM_TYPES[obj]
+
         if obj not in self.objects:
             return False
         return self.objects[obj] >= count
 
     def take(self, obj, count=1):
         """Take items from the inventory."""
+        if isinstance(obj, str):
+            obj = ITEM_TYPES[obj]
+
         if obj not in self.objects:
             raise NoItems(f'You have no {obj.plural}')
 
@@ -73,13 +93,23 @@ class Inventory:
             raise InsufficientItems(f'You only have {have} {obj.plural}')
 
 
-# Define items here
-banana = Stackable('banana', 'bananas', 'banana')
 iron = Stackable('iron ingot', 'iron ingots', 'iron')
 
 
+@item
 class Shroom(Stackable):
+    singular = model = 'mushroom'
+    plural = 'mushrooms'
     image = 'mushroom'
+
+    @staticmethod
+    def get_model():
+        return random.choice((
+            'nature/mushroom_brownTall',
+            'nature/mushroom_redTall',
+            'nature/mushroom_brown',
+            'nature/mushroom_red'
+        ))
 
     def __eq__(self, ano):
         return isinstance(ano, Shroom)
@@ -87,23 +117,49 @@ class Shroom(Stackable):
     def __hash__(self):
         return 42
 
-    def on_use(self, pc):
-        pc.client.text_message("You eat a mushroom.")
+    @staticmethod
+    def on_use(pc):
+        pc.client.inventory.take('mushroom', 1)
+        if pc.client.can('eat_shrooms'):
+            pc.client.text_message("You eat a mushroom. You feel sick.")
+            pc.hit(-5)
+        else:
+            pc.client.text_message("You eat a safe mushroom.")
+            pc.add_health(5)
+
+
+@item
+class Banana(Stackable):
+    singular = 'banana'
+    plural = 'bananas'
+    image = model = 'banana'
+
+    @classmethod
+    def get_model(cls):
+        return cls.model
+
+    @staticmethod
+    def on_use(pc):
+        pc.client.text_message("You eat a delicious banana.")
         pc.add_health(5)
-        pc.client.inventory.take(self, 1)
 
 
-SHROOMS = [
-    Shroom('mushroom', 'mushrooms', model)
-    for model in [
-        'nature/mushroom_brownTall',
-        'nature/mushroom_redTall',
-        'nature/mushroom_brown',
-        'nature/mushroom_red']
-]
-shroom = SHROOMS[0]
+@item
+class Iron(Stackable):
+    singular = 'iron ingot'
+    plural = 'iron ingots'
+    image = model = 'iron'
+
+    @classmethod
+    def get_model(cls):
+        return cls.model
+
+    @staticmethod
+    def on_use(pc):
+        pass
+
 
 COLLECTABLES = [
-    banana,
-    iron,
+    Banana,
+    Iron,
 ]

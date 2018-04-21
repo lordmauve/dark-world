@@ -5,7 +5,7 @@ import weakref
 
 from .coords import Direction, adjacent, Rect
 from .world import Collision
-from .items import InsufficientItems, shroom
+from .items import InsufficientItems
 
 
 class Actor:
@@ -15,7 +15,7 @@ class Actor:
     size = (1, 1)
 
     def __init__(self):
-        self.uid = uuid.uuid4().hex
+        self.uid = f'{type(self).__name__}-{uuid.uuid4()}'
         self.below = None
         self._world = None
         self.pos = (0, 0)
@@ -325,7 +325,7 @@ class Trigger(Scenery):
 
         if not pc.client.can('developer'):
             try:
-                pc.client.inventory.take(shroom, 2)
+                pc.client.inventory.take('mushroom', 2)
             except InsufficientItems as e:
                 pc.client.text_message(
                     f"{e.args[0]}. You don't have enough "
@@ -383,7 +383,7 @@ class Pickable(Scenery):
 
     def __init__(self, item):
         self.item = item
-        super().__init__(item.model)
+        super().__init__(item.get_model())
 
     def on_act(self, pc):
         self.kill()
@@ -397,7 +397,7 @@ class Collectable(Standable):
 
     def __init__(self, item):
         self.item = item
-        super().__init__(item.model)
+        super().__init__(item.get_model())
 
     def on_enter(self, pc):
         self.kill()

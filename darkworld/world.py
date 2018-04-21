@@ -168,7 +168,7 @@ class World:
         """Remove an object from the grid."""
         pos = obj.pos
         self._pop(pos, obj)
-        del self.by_uid[obj.uid]
+        self.by_uid.pop(obj.uid, None)
         self.get_subscribers(pos).kill(obj, pos, effect)
         return pos
 
