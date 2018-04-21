@@ -348,7 +348,7 @@ class Client:
     async def receiver(self):
         try:
             async for m in self.ws:
-                # TODO: flood protection
+                await asyncio.sleep(0.1)
                 msg = m.json()
                 op = msg.pop('op')
                 if not self.name and op != 'auth':

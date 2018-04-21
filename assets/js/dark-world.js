@@ -903,10 +903,12 @@ function on_mouse_move(event) {
     }).appendTo(document.body);
 }
 
+
+var lastevent = 0;
+
+
 function initInput() {
-
    $(window).bind('mousemove', on_mouse_move);
-
 
    $(window).bind('keydown', function(event) {
         var keyCode = event.which;
@@ -918,7 +920,11 @@ function initInput() {
         }
         op = KEYMAP[keyCode];
         if (op) {
-            send_msg({'op': op});
+            let now = performance.now();
+            if ((now - lastevent) > 120) {
+                lastevent = now;
+                send_msg({'op': op});
+            }
         }
     });
 }
