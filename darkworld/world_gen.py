@@ -11,6 +11,7 @@ from .actor import (
     Enemy, Teleporter, Scenery, Standable, Trigger, Pickable, Large
 )
 from .items import SHROOMS
+from .enemies import random_enemy
 from .ai import EnemyAI
 from .npcs import spawn_npcs
 
@@ -71,10 +72,10 @@ def create_dark_world():
         metadata={
             'title': 'The Dark World',
             'title_color': 'white',
-            'sun_color': 0x2222ff,
-            'sun_intensity': 0.2,
-            'ambient_color': 0x0000ff,
-            'ambient_intensity': 0.1,
+            'sun_color': 0xffffff,
+            'sun_intensity': 0.3,
+            'ambient_color': 0x4444ff,
+            'ambient_intensity': 0.4,
             'world_tex': 'dark_terrain',
         },
         # accessible_area=set(logical_grid),
@@ -105,7 +106,7 @@ def create_dark_world():
     enemies = []
     for pos in enemy_pos:
         logical_grid.discard(pos)
-        e = Enemy('enemies/bat', 10)
+        e = random_enemy()
         e.spawn(w, pos)
         enemies.append(e)
 

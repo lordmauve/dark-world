@@ -324,7 +324,7 @@ class Trigger(Scenery):
                 to_teleport.append((t, (x, y)))
 
         try:
-            pc.client.inventory.take(shroom, 3)
+            pc.client.inventory.take(shroom, 2)
         except InsufficientItems as e:
             pc.client.text_message(
                 f"{e.args[0]}. You don't have enough mushrooms to teleport!"
