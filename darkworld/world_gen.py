@@ -8,7 +8,7 @@ from PIL import Image
 from .coords import Direction, adjacent, random_dir
 from .world import World, Collision
 from .actor import (
-    Enemy, Teleporter, Scenery, Standable, Trigger, Pickable, Large
+    Teleporter, Scenery, Standable, Trigger, Pickable, Large, Block
 )
 from .items import SHROOMS
 from .enemies import random_enemy
@@ -85,17 +85,54 @@ def create_dark_world():
     entrance = set(product((-1, 0, 1), (-1, 0, 1)))
     logical_grid.update(entrance)
 
+    BLOCK_MAP = {
+            (1, 1, 1): ('nature/cliffGrey_block', 1),
+            (1, 0, 1): ('nature/cliffGrey_cornerInnerTop', 1),
+            (0, 0, 1): ('nature/cliffGrey_top_2', 1),
+            (0, 0, 0): ('nature/cliffGrey_cornerTop', 1),
+    }
+
+    rel = [
+        (Direction.NORTH, [
+            (0, -1),
+            (1, -1),
+            (1, 0),
+        ]),
+        (Direction.EAST, [
+            (1, 0),
+            (1, 1),
+            (0, 1),
+        ]),
+        (Direction.SOUTH, [
+            (0, 1),
+            (-1, 1),
+            (-1, 0),
+        ]),
+        (Direction.WEST, [
+            (-1, 0),
+            (-1, -1),
+            (0, -1),
+        ])
+    ]
+
     with timeit('border'):
-        for p in border(logical_grid):
-            Scenery(
-                random.choice((
-                    'nature/plant_bushLarge',
-                ))
-            ).spawn(
-                w,
-                p,
-                direction=random_dir()
-            )
+        walls = border(logical_grid)
+        walls.update(border(walls) - logical_grid)
+        for p in walls:
+            px, py = p
+            for dir, rels in rel:
+                adj = tuple((px + rx, py + ry) in walls for rx, ry in rels)
+                ms = BLOCK_MAP.get(adj)
+                if not ms:
+                    continue
+                model, scale = ms
+
+                block = Block(model, scale=scale)
+                block.direction = dir
+                block.pos = p
+                block.world = w
+                w._push(block, p, force=True)
+                w.by_uid[block.uid] = block
 
     from . import client
     Teleporter(target=client.light_world).spawn(w, (0, 0))
@@ -215,7 +252,8 @@ def create_light_world():
     trigger = Trigger('nature/stone_obelisk').spawn(light_world, trigger_pos)
     plant_areas.discard(trigger_pos)
 
-    tent = Large('nature/tent_detailedOpen', (2, 2)).spawn(light_world, (-14, 0), Direction.SOUTH)
+    tent = Large('nature/tent_detailedOpen', (2, 2))
+    tent.spawn(light_world, (-14, 0), Direction.SOUTH)
     plant_areas.difference_update(tent.bounds().coords())
 
     for npc in spawn_npcs(light_world):

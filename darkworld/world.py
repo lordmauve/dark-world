@@ -96,7 +96,7 @@ class World:
             subscribers.spawn(obj, pos, effect)
         return pos
 
-    def _push(self, obj, pos):
+    def _push(self, obj, pos, force=False):
         """Push an actor onto the actor stack at pos."""
         if not self.in_bounds(pos):
             raise Collision(f'{pos} is not in bounds')
@@ -107,7 +107,7 @@ class World:
 
         existing = self.grid[pos]
 
-        if not existing.standable:
+        if not existing.standable and not force:
             raise Collision(
                 f'Target position {pos} is occupied '
                 f'by {existing}'

@@ -1,210 +1,296 @@
 {
-  "accessors": [
-    {
-      "bufferView": 0,
-      "componentType": 5126,
-      "count": 87,
-      "type": "VEC3",
-      "max": [
-        0.0,
-        2.2000000476837158,
-        1.1399999856948853
-      ],
-      "min": [
-        -3.0,
-        0.0,
-        0.0
-      ]
-    },
-    {
-      "bufferView": 1,
-      "componentType": 5126,
-      "count": 87,
-      "type": "VEC3",
-      "max": [
-        1.0,
-        1.0,
-        0.96061909198760986
-      ],
-      "min": [
-        -1.0,
-        -1.0,
-        -1.0
-      ]
-    },
-    {
-      "bufferView": 2,
-      "componentType": 5126,
-      "count": 87,
-      "type": "VEC4",
-      "max": [
-        1.0,
-        0.0,
-        1.0,
-        1.0
-      ],
-      "min": [
-        -1.0,
-        0.0,
-        -1.0,
-        1.0
-      ]
-    },
-    {
-      "bufferView": 3,
-      "componentType": 5126,
-      "count": 87,
-      "type": "VEC2",
-      "max": [
-        118.11023712158203,
-        11.115795135498047
-      ],
-      "min": [
-        -125.30056762695313,
-        -86.1759262084961
-      ]
-    },
-    {
-      "bufferView": 4,
-      "componentType": 5121,
-      "count": 75,
-      "type": "SCALAR",
-      "max": [
-        44.0
-      ],
-      "min": [
-        0.0
-      ]
-    },
-    {
-      "bufferView": 5,
-      "componentType": 5121,
-      "count": 84,
-      "type": "SCALAR",
-      "max": [
-        86.0
-      ],
-      "min": [
-        45.0
-      ]
-    }
-  ],
-  "asset": {
-    "version": "2.0"
-  },
-  "buffers": [
-    {
-      "uri": "cliffGrey_top.bin",
-      "byteLength": 4335
-    }
-  ],
-  "bufferViews": [
-    {
-      "buffer": 0,
-      "byteLength": 1044
-    },
-    {
-      "buffer": 0,
-      "byteOffset": 1044,
-      "byteLength": 1044
-    },
-    {
-      "buffer": 0,
-      "byteOffset": 2088,
-      "byteLength": 1392
-    },
-    {
-      "buffer": 0,
-      "byteOffset": 3480,
-      "byteLength": 696
-    },
-    {
-      "buffer": 0,
-      "byteOffset": 4176,
-      "byteLength": 75
-    },
-    {
-      "buffer": 0,
-      "byteOffset": 4251,
-      "byteLength": 84
-    }
-  ],
-  "materials": [
-    {
-      "pbrMetallicRoughness": {
-        "baseColorFactor": [
-          0.65882355,
-          0.807843149,
-          0.827451,
-          1.0
-        ],
-        "metallicFactor": 0.25
-      },
-      "name": "natureKit-stone"
-    },
-    {
-      "pbrMetallicRoughness": {
-        "baseColorFactor": [
-          0.3529412,
-          0.768627465,
-          0.7137255,
-          1.0
-        ],
-        "metallicFactor": 0.25
-      },
-      "name": "natureKit-leavesGreen"
-    }
-  ],
-  "meshes": [
-    {
-      "primitives": [
+    "accessors" : [
         {
-          "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TANGENT": 2,
-            "TEXCOORD_0": 3
-          },
-          "indices": 4,
-          "material": 0
-        },
+            "bufferView" : 0, 
+            "componentType" : 5121, 
+            "count" : 75, 
+            "max" : [
+                48
+            ], 
+            "min" : [
+                0
+            ], 
+            "type" : "SCALAR"
+        }, 
         {
-          "attributes": {
-            "POSITION": 0,
-            "NORMAL": 1,
-            "TANGENT": 2,
-            "TEXCOORD_0": 3
-          },
-          "indices": 5,
-          "material": 1
+            "bufferView" : 1, 
+            "componentType" : 5126, 
+            "count" : 49, 
+            "max" : [
+                2.9407734870910645, 
+                2.8642566204071045, 
+                -0.044135045260190964
+            ], 
+            "min" : [
+                0.0, 
+                -0.07651682943105698, 
+                -1.392250895500183
+            ], 
+            "type" : "VEC3"
+        }, 
+        {
+            "bufferView" : 2, 
+            "componentType" : 5126, 
+            "count" : 49, 
+            "max" : [
+                1.0, 
+                0.9253212213516235, 
+                1.0
+            ], 
+            "min" : [
+                -1.0, 
+                -1.0, 
+                -0.9518112540245056
+            ], 
+            "type" : "VEC3"
+        }, 
+        {
+            "bufferView" : 3, 
+            "componentType" : 5126, 
+            "count" : 49, 
+            "max" : [
+                1.0, 
+                0.011943263933062553, 
+                1.0, 
+                1.0
+            ], 
+            "min" : [
+                -1.0, 
+                -0.011720208451151848, 
+                -1.0, 
+                -1.0
+            ], 
+            "type" : "VEC4"
+        }, 
+        {
+            "bufferView" : 4, 
+            "componentType" : 5126, 
+            "count" : 49, 
+            "max" : [
+                118.11019897460938, 
+                11.115799903869629
+            ], 
+            "min" : [
+                -125.30059814453125, 
+                -86.1759262084961
+            ], 
+            "type" : "VEC2"
+        }, 
+        {
+            "bufferView" : 5, 
+            "componentType" : 5121, 
+            "count" : 84, 
+            "max" : [
+                49
+            ], 
+            "min" : [
+                0
+            ], 
+            "type" : "SCALAR"
+        }, 
+        {
+            "bufferView" : 6, 
+            "componentType" : 5126, 
+            "count" : 50, 
+            "max" : [
+                2.9407734870910645, 
+                2.8642566204071045, 
+                -0.044135045260190964
+            ], 
+            "min" : [
+                0.0, 
+                2.623647689819336, 
+                -1.1557397842407227
+            ], 
+            "type" : "VEC3"
+        }, 
+        {
+            "bufferView" : 7, 
+            "componentType" : 5126, 
+            "count" : 50, 
+            "max" : [
+                0.5140232443809509, 
+                1.0, 
+                -0.0
+            ], 
+            "min" : [
+                -0.4680013358592987, 
+                0.5301980376243591, 
+                -0.7666860222816467
+            ], 
+            "type" : "VEC3"
+        }, 
+        {
+            "bufferView" : 8, 
+            "componentType" : 5126, 
+            "count" : 50, 
+            "max" : [
+                1.0, 
+                0.04222899302840233, 
+                0.5144221186637878, 
+                1.0
+            ], 
+            "min" : [
+                -0.967700719833374, 
+                -0.04051326587796211, 
+                -0.5603029727935791, 
+                -1.0
+            ], 
+            "type" : "VEC4"
+        }, 
+        {
+            "bufferView" : 9, 
+            "componentType" : 5126, 
+            "count" : 50, 
+            "max" : [
+                118.11019897460938, 
+                1.0000000000000084
+            ], 
+            "min" : [
+                -123.47370147705078, 
+                -73.6350326538086
+            ], 
+            "type" : "VEC2"
         }
-      ],
-      "name": "cliffGrey_top"
-    }
-  ],
-  "nodes": [
-    {
-      "mesh": 0,
-      "scale": [
-        0.333333343,
-        0.454545468,
-        0.4021248
-      ],
-      "translation": [
-        -5.0,
-        2.050885E-18,
-        -3.60000014
-      ],
-      "name": "cliffGrey_top"
-    }
-  ],
-  "scene": 0,
-  "scenes": [
-    {
-      "nodes": [
-        0
-      ],
-      "name": "cliffGrey_top"
-    }
-  ]
+    ], 
+    "asset" : {
+        "generator" : "Khronos Blender glTF 2.0 exporter", 
+        "version" : "2.0"
+    }, 
+    "bufferViews" : [
+        {
+            "buffer" : 0, 
+            "byteLength" : 75, 
+            "byteOffset" : 0, 
+            "target" : 34963
+        }, 
+        {
+            "buffer" : 0, 
+            "byteLength" : 588, 
+            "byteOffset" : 76, 
+            "target" : 34962
+        }, 
+        {
+            "buffer" : 0, 
+            "byteLength" : 588, 
+            "byteOffset" : 664, 
+            "target" : 34962
+        }, 
+        {
+            "buffer" : 0, 
+            "byteLength" : 784, 
+            "byteOffset" : 1252, 
+            "target" : 34962
+        }, 
+        {
+            "buffer" : 0, 
+            "byteLength" : 392, 
+            "byteOffset" : 2036, 
+            "target" : 34962
+        }, 
+        {
+            "buffer" : 0, 
+            "byteLength" : 84, 
+            "byteOffset" : 2428, 
+            "target" : 34963
+        }, 
+        {
+            "buffer" : 0, 
+            "byteLength" : 600, 
+            "byteOffset" : 2512, 
+            "target" : 34962
+        }, 
+        {
+            "buffer" : 0, 
+            "byteLength" : 600, 
+            "byteOffset" : 3112, 
+            "target" : 34962
+        }, 
+        {
+            "buffer" : 0, 
+            "byteLength" : 800, 
+            "byteOffset" : 3712, 
+            "target" : 34962
+        }, 
+        {
+            "buffer" : 0, 
+            "byteLength" : 400, 
+            "byteOffset" : 4512, 
+            "target" : 34962
+        }
+    ], 
+    "buffers" : [
+        {
+            "byteLength" : 4912, 
+            "uri" : "cliffGrey_top.bin"
+        }
+    ], 
+    "materials" : [
+        {
+            "name" : "natureKit-leavesGreen.001", 
+            "pbrMetallicRoughness" : {
+                "baseColorFactor" : [
+                    0.3529411852359772, 
+                    0.7686275243759155, 
+                    0.7137255072593689, 
+                    1.0
+                ], 
+                "metallicFactor" : 0.0
+            }
+        }, 
+        {
+            "name" : "natureKit-stone.001", 
+            "pbrMetallicRoughness" : {
+                "baseColorFactor" : [
+                    0.6588234901428223, 
+                    0.8078430891036987, 
+                    0.8274509906768799, 
+                    1.0
+                ], 
+                "metallicFactor" : 0.0
+            }
+        }
+    ], 
+    "meshes" : [
+        {
+            "name" : "cliffGrey_top", 
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "NORMAL" : 2, 
+                        "POSITION" : 1, 
+                        "TANGENT" : 3, 
+                        "TEXCOORD_0" : 4
+                    }, 
+                    "indices" : 0, 
+                    "material" : 1
+                }, 
+                {
+                    "attributes" : {
+                        "NORMAL" : 7, 
+                        "POSITION" : 6, 
+                        "TANGENT" : 8, 
+                        "TEXCOORD_0" : 9
+                    }, 
+                    "indices" : 5, 
+                    "material" : 0
+                }
+            ]
+        }
+    ], 
+    "nodes" : [
+        {
+            "mesh" : 0, 
+            "name" : "cliffGrey_top"
+        }
+    ], 
+    "scene" : 0, 
+    "scenes" : [
+        {
+            "name" : "Scene", 
+            "nodes" : [
+                0
+            ]
+        }
+    ]
 }

@@ -64,6 +64,8 @@ class EnemyAI:
             loop.call_later(0.5, self.think)
 
         for e, target in list(self.enemies.items()):
+            if not e.alive:
+                continue
             if target and target.alive:
                 if manhattan_distance(e.pos, target.pos) == 1:
                     e.face(target)

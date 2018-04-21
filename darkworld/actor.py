@@ -323,13 +323,15 @@ class Trigger(Scenery):
                 y -= self.pos[1]
                 to_teleport.append((t, (x, y)))
 
-        try:
-            pc.client.inventory.take(shroom, 2)
-        except InsufficientItems as e:
-            pc.client.text_message(
-                f"{e.args[0]}. You don't have enough mushrooms to teleport!"
-            )
-            return
+        if not pc.client.can('developer'):
+            try:
+                pc.client.inventory.take(shroom, 2)
+            except InsufficientItems as e:
+                pc.client.text_message(
+                    f"{e.args[0]}. You don't have enough "
+                    "mushrooms to teleport!"
+                )
+                return
 
         if to_teleport:
             from .world_gen import create_dark_world
@@ -366,6 +368,14 @@ class Large(Scenery):
         j = super().to_json()
         j['pos'] = self.center
         return j
+
+
+class Block(Scenery):
+    scale = 16
+
+    def __init__(self, model, scale):
+        super().__init__(model)
+        self.scale = type(self).scale * scale
 
 
 class Pickable(Scenery):
