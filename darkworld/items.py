@@ -76,6 +76,14 @@ class Inventory:
             return False
         return self.objects[obj] >= count
 
+    def count(self, obj):
+        """Count how many items of the given type the inventory holds."""
+        if isinstance(obj, str):
+            obj = ITEM_TYPES[obj]
+        if obj not in self.objects:
+            return 0
+        return self.objects[obj]
+
     def take(self, obj, count=1):
         """Take items from the inventory."""
         if isinstance(obj, str):

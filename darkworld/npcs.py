@@ -48,11 +48,41 @@ class Forager(NPC):
     skin = 'man'
     title = 'Forager'
 
+    buy_shrooms = [100, 50, 20, 10]
+
     @start_coroutine
     async def on_act(self, pc):
         self.face(pc)
+        if pc.client.can('sell_shrooms'):
+            have = pc.client.inventory.count('mushroom')
+            for num in self.buy_shrooms:
+                if have >= num:
+                    break
+            else:
+                pc.client.say(
+                    self.title,
+                    "If you find any mushrooms, I'll buy them "
+                    "for 1 \U0001F4B0 each!"
+                )
+                return
+            pc.client.say(
+                self.title,
+                f"Great, I'll take {num} mushrooms. "
+                f"That makes {num} \U0001F4B0!"
+            )
+            pc.client.inventory.take('mushroom', num)
+            pc.client.gold += num
+            return
+
         if pc.client.can('eat_shrooms'):
             pc.client.say(self.title, "That's all I know!")
+            await asyncio.sleep(2)
+            pc.client.say(
+                self.title,
+                "If you find any mushrooms, I'll buy them "
+                "for 1 \U0001F4B0 each!"
+            )
+            pc.client.grant('sell_shrooms')
             return
 
         if not pc.client.can('start_forage'):
