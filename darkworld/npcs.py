@@ -3,7 +3,9 @@ from .dialog import ShopDialog, BlacksmithDialog
 from .coords import Direction
 from .actor import NPC, Scenery
 from .asyncutils import start_coroutine
-from .items import InsufficientItems, Torch, Elixir, Iron, Axe, Compass
+from .items import (
+    InsufficientItems, Torch, Elixir, Axe, Compass, AdventurerSword
+)
 
 
 class Woodsman(NPC):
@@ -86,6 +88,7 @@ class Blacksmith(NPC):
         pc.client.say(self.title, "If ye have the metal.")
         pc.client.show_dialog(BlacksmithDialog({
             Axe: 10,
+            AdventurerSword: 30,
         }))
 
 

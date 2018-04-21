@@ -222,8 +222,11 @@ class Enemy(Mob):
     def on_act(self, pc):
         self.face(pc)
         pc.attack()
-        dmg = random.randint(1, self.damage)
-        self.hit(dmg)
+        damage = 2
+        if pc.client.inventory.have('adventurer sword'):
+            damage += 2
+
+        self.hit(damage)
 
     def on_death(self):
         from .items import generate_loot

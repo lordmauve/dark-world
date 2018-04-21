@@ -226,6 +226,13 @@ class Axe(DumbItem):
 
 
 @item
+class AdventurerSword(DumbItem):
+    singular = 'adventurer sword'
+    image = model = 'sword'
+    plural = 'adventurer swords'
+
+
+@item
 class TreeSeed(DumbItem):
     singular = 'tree seed'
     plural = 'tree seeds'
