@@ -4,7 +4,8 @@ from .actor import Enemy
 
 ENEMIES = [
     'enemies/bat',
-    'enemies/spider'
+    'enemies/spider',
+    'enemies/rat',
 ]
 
 
