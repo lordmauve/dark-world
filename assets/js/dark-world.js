@@ -246,7 +246,7 @@ function init() {
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(window.devicePixelRatio * 0.5);
     renderer.setSize( window.innerWidth, window.innerHeight);
     renderer.gammaOutput = true;
     container.appendChild( renderer.domElement );

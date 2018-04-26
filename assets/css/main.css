@@ -8,6 +8,15 @@ body {
     color: #fff;
     margin: 0px;
     overflow: hidden;
+
+}
+
+#forkme {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 0;
+    z-index: 99;
 }
 
 h1 {
