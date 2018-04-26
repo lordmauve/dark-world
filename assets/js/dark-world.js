@@ -1,5 +1,8 @@
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
+const ANTIALIAS = false;
+const STATS = false;
+
 var container, stats, controls;
 var camera, scene, renderer, light, sun, ambient, anims, slash, proton;
 
@@ -229,8 +232,8 @@ function init() {
     sun.shadow.camera.right = SHADOW_SIZE;
     sun.shadow.camera.bottom = -SHADOW_SIZE;
     sun.shadow.camera.top = SHADOW_SIZE;
-    sun.shadow.camera.near = 0.5;    // default
-    sun.shadow.camera.far = 1000;     // default
+    sun.shadow.camera.near = 100;
+    sun.shadow.camera.far = 1000;
     scene.add( sun );
     scene.add(sun.target);
 
@@ -243,10 +246,12 @@ function init() {
     add_tile(SLAB, 1, 1);
     */
 
-    renderer = new THREE.WebGLRenderer( { antialias: true } );
+    renderer = new THREE.WebGLRenderer({antialias: ANTIALIAS});
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.setPixelRatio(window.devicePixelRatio * 0.5);
+    /* For native pixel sizes
+    renderer.setPixelRatio(window.devicePixelRatio);
+    */
     renderer.setSize( window.innerWidth, window.innerHeight);
     renderer.gammaOutput = true;
     container.appendChild( renderer.domElement );
@@ -254,10 +259,10 @@ function init() {
     window.addEventListener( 'resize', onWindowResize, false );
 
     // stats
-    /*
-    stats = new Stats();
-    container.appendChild( stats.dom );
-    */
+    if (STATS) {
+        stats = new Stats();
+        container.appendChild( stats.dom );
+    }
 
     proton = new Proton();
     proton.addRender(new Proton.SpriteRender(scene));
@@ -397,7 +402,8 @@ function animate() {
     proton.update();
     anims.update(clock.getDelta());
     renderer.render( scene, camera );
-    //stats.update();
+    if (STATS)
+        stats.update();
 }
 
 
